@@ -1,0 +1,102 @@
+swagger: "2.0"
+info:
+  description: "Signing service for version 1 Choria Secure Requests"
+  version: "1.0.0"
+  title: "Choria Central Signing Service"
+basePath: "/choria/v1"
+schemes:
+- "https"
+- "http"
+paths:
+  /login:
+    post:
+      summary: "Logs into the service using auth0"
+      description: "Logs into the choria service"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+
+      parameters:
+      - in: "body"
+        name: "request"
+        description: "The Login request"
+        required: true
+        schema:
+          $ref: "#/definitions/LoginRequest"
+
+      responses:
+        "200":
+          description: "Login response"
+          schema:
+            $ref: "#/definitions/LoginResponse"
+
+  /sign:
+    post:
+      summary: "Sign a message"
+      description: "Signs a Choria request"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+
+      parameters:
+      - in: "body"
+        name: "request"
+        description: "The Choria message to sign"
+        required: true
+        schema:
+          $ref: "#/definitions/SignRequest"
+
+      responses:
+        "200":
+          description: "Signature response"
+          schema:
+            $ref: "#/definitions/SignResponse"
+
+definitions:
+  LoginRequest:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+        description: "The username to log in with"
+
+      password:
+        type: "string"
+        description: "The password to log in with"
+
+  LoginResponse:
+    type: "object"
+    properties:
+      token:
+        type: "string"
+        description: "The JWT token identifying the user, obtained from /login"
+
+      error:
+        type: "string"
+        description: "An error message indicating why login failed"
+
+  SignRequest:
+    type: "object"
+    properties:
+      token:
+        type: "string"
+        description: "The JWT token identifying the user, obtained from /login"
+
+      request:
+        type: "string"
+        format: "byte"
+        description: "base64 encoded choria:request:1 message to sign"
+
+  SignResponse:
+    type: "object"
+    properties:
+      secure_request:
+        type: "string"
+        format: "byte"
+        description: "base64 encoded choria:secure:request:1 signed message"
+
+      error:
+        type: "string"
+        description: "An error message indicating why signing failed"
