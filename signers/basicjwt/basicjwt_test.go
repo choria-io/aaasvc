@@ -11,10 +11,10 @@ import (
 	protocol "github.com/choria-io/go-protocol/protocol"
 	"github.com/choria-io/go-protocol/protocol/v1"
 
-	"github.com/choria-io/go-choria/choria"
-	gomock "github.com/golang/mock/gomock"
 	"github.com/choria-io/aaasvc/api/gen/models"
 	auditors "github.com/choria-io/aaasvc/auditors"
+	"github.com/choria-io/go-choria/choria"
+	gomock "github.com/golang/mock/gomock"
 
 	cconf "github.com/choria-io/go-choria/config"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -52,7 +52,7 @@ var _ = Describe("BasicJWT", func() {
 
 		signer.SetAuthorizer(authorizer)
 		signer.SetAuditors(auditor)
-
+		protocol.Secure = "false"
 		token = genToken()
 		req = &models.SignRequest{Token: token}
 	})
