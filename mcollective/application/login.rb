@@ -92,7 +92,10 @@ module MCollective
       end
 
       def token_file
-        config.pluginconf["choria.security.request_signer.token_file"]
+        file = config.pluginconf["choria.security.request_signer.token_file"]
+        return nil unless file
+
+        File.expand_path(file)
       end
 
       def save_token(token)
