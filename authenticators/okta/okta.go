@@ -10,12 +10,12 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/choria-io/aaasvc/api/gen/models"
+	"github.com/choria-io/aaasvc/authenticators"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/okta/okta-sdk-golang/okta"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/choria-io/aaasvc/api/gen/models"
-	"github.com/choria-io/aaasvc/authenticators"
 	"github.com/sirupsen/logrus"
 )
 
@@ -114,7 +114,7 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS512"), jwt.MapClaims{
 		"exp":      time.Now().UTC().Add(a.validity).Unix(),
 		"nbf":      time.Now().UTC().Add(-1 * time.Minute).Unix(),
-		"iat":      time.Now().UTC(),
+		"iat":      time.Now().UTC().Unix(),
 		"iss":      "Choria Okta Authenticator",
 		"sub":      fmt.Sprintf("okta=%s", req.Username),
 		"agents":   allowedActions,
