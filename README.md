@@ -49,6 +49,8 @@ The signer uses a JSON file for configuration and lets you compose the system as
 ```json
 {
   "choria_config": "/etc/choria/signer/choria.conf",
+  "logfile": "/var/log/aaasvc.log",
+  "loglevel": "warn",
   "authenticator": "userlist",
   "auditors": ["logfile"],
   "authorizer": "actionlist",
@@ -84,6 +86,8 @@ The signer uses a JSON file for configuration and lets you compose the system as
 |Key|Description|
 |---|-----------|
 |choria_config|Configuration for the Choria framework, example below|
+|logfile|Logfile for the service running info|
+|loglevel|Level to log at - debug, info, warn|
 |authenticator|The name of the authenticator to use, see feature reference|
 |auditors|List of auditors to use, see feature reference|
 |authorizer|Authorizer to use, see feature reference|

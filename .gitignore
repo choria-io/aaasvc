@@ -3,3 +3,5 @@ aaasvc
 *.swp
 *.bak
 .DS_Store
+*.rpm
+aaasvc-*linux*
