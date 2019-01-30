@@ -132,3 +132,4 @@ module MCollective
       end
     end
   end
+end
