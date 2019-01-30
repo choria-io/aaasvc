@@ -2,9 +2,27 @@
 
 Choria is traditionally a loosely coupled system with very few central components.  In certain environments centralised AAA / RBAC is desired, this package delivers that.
 
-Read the [introductory blog post for background and motiviation](https://choria.io/blog/post/2019/01/23/central_aaa/)
+Read the [introductory blog post for background and motivation](https://choria.io/blog/post/2019/01/23/central_aaa/)
 
 The main motivation is to avoid the problems caused by having to do certificate management for every user, instead you have a central login and central authority who does AAA for every request.  This is more appropriate to the typical Enterprise environment, typical users will be happy with the default behavior.
+
+With this deployed the workflow becomes:
+
+```
+$ mco ping
+The ping application failed to run, use -v for full error backtrace details: could not find token in environment variable CHORIA_TOKEN
+
+$ mco login
+Username (rip):
+Password:
+Starting a new shell with CHORIA_TOKEN set, please exit when done
+
+$ mco ping
+---- ping statistics ----
+19 replies max: 161.60 min: 131.23 avg: 151.21
+```
+
+The token is valid for a configurable period after which time another `mco login` will be required. Users are able to perform only the actions that he is entitled. Users have no SSL certificates of their own.
 
 ## Status
 
@@ -25,6 +43,7 @@ This is under active development, see the Issues list for current outstanding it
    * JWT token based signer
    * Does not require access to the login service
    * Stateless capable of running regionally in clusters behind load balancers with no shared storage needs
+ * Convenient `mco login` tool for authenticating to the service
  * Prometheus stats
  * CLI for encrypting secrets using bcrypt
  * Only supports HTTPS with verification disabled as clients lack certificates in this model
