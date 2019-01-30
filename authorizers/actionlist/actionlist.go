@@ -23,10 +23,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/choria-io/aaasvc/authorizers"
 	"github.com/choria-io/go-protocol/protocol"
 	"github.com/choria-io/mcorpc-agent-provider/mcorpc"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/choria-io/aaasvc/authorizers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -91,7 +91,7 @@ func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allo
 		a.log.Warnf("Denying request %s from %s@%s for agent %s#%s", req.RequestID(), req.CallerID(), req.SenderID(), rpcreq.Agent, rpcreq.Action)
 	}
 
-	return ok, fmt.Sprintf("%s.%s", rpcreq.Action, rpcreq.Action), err
+	return ok, fmt.Sprintf("%s.%s", rpcreq.Agent, rpcreq.Action), err
 }
 
 func validateAction(agent string, action string, claims jwt.MapClaims, log *logrus.Entry) (ok bool, err error) {
