@@ -8,28 +8,26 @@ The main motivation is to avoid the problems caused by having to do certificate 
 
 ## Status
 
-This is under active development, a rough todo list is:
-
- * Packaging
- * Dynamically reading the user list in the `userlist` authenticator
- * `mco login` CLI
- * Puppet module
- * Grafana dashboard
+This is under active development, see the Issues list for current outstanding items.
 
 ## Features
 
  * Authentication
-   * Okta identity cloud
-   * Static configuration
+   * [Okta identity cloud](https://okta.com/)
+   * Static configured users
+   * Capable of running centrally separate from signers
  * Authorization
-   * JWT token based signer with auditing
+   * JWT token claims based allow list for access to agents and actions
  * Auditing
    * Log file based auditing
    * Messages published to NATS Stream
+ * Signing
+   * JWT token based signer
+   * Does not require access to the login service
+   * Stateless capable of running regionally in clusters behind load balancers with no shared storage needs
  * Prometheus stats
  * CLI for encrypting secrets using bcrypt
  * Only supports HTTPS with verification disabled as clients lack certificates in this model
- * Stateless signers capable of running regionally in clusters behind load balancers with no shared storage needs
 
 ## General Configuration
 
