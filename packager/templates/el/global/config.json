@@ -1,0 +1,26 @@
+{
+    "logfile": "/var/log/{{cpkg_name}}/{{cpkg_name}}.log",
+    "loglevel": "info",
+    "choria_config": "{{cpkg_etcdir}}/choria.conf",
+    "authenticator": "userlist",
+    "auditors": ["logfile"],
+    "authorizer": "actionlist",
+    "signer": "basicjwt",
+    "port": 8080,
+    "monitor_port": 8081,
+    "site": "default",
+    "tls_certificate": "{{cpkg_etcdir}}/tls_cert.pem",
+    "tls_key": "{{cpkg_etcdir}}/tls_key.pem",
+    "tls_ca":  "{{cpkg_etcdir}}/tls_ca.pem",
+    "basicjwt_signer": {
+      "signing_certificate": "{{cpkg_etcdir}}/signing_pub.pem"
+    },
+    "logfile_auditor": {
+      "logfile": "/var/log/{{cpkg_name}}/audit.log"
+    },
+    "userlist_authenticator": {
+      "signing_key": "{{cpkg_etcdir}}/signing_key.pem",
+      "validity": "1h",
+      "users": [ ]
+    }
+  }

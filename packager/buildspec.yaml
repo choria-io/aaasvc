@@ -1,0 +1,31 @@
+flags_map:
+  Version: github.com/choria-io/aaasvc/cmd.Version
+
+foss:
+  compile_targets:
+    defaults:
+      output: aaasvc-{{version}}-{{os}}-{{arch}}
+      strip: true
+
+    64bit_linux:
+      os: linux
+      arch: amd64
+
+  packages:
+    defaults:
+      name: aaasvc
+      bindir: /usr/sbin
+      etcdir: /etc/aaasvc
+      release: 1
+
+    el6_64:
+      dist: el6
+      template: el/el6
+      target_arch: x86_64
+      binary: 64bit_linux
+
+    el7_64:
+      dist: el7
+      template: el/el7
+      target_arch: x86_64
+      binary: 64bit_linux
