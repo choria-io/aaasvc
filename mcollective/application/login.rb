@@ -109,7 +109,9 @@ module MCollective
           ENV[token_env] = token
           exec(ENV["SHELL"])
         elsif token_file
-          File.open(token_file, "w") do |file|
+          File.unlink(token_file) if File.exist?(token_file)
+
+          File.open(token_file, File::CREAT|File::TRUNC|File::RDWR, 0600) do |file|
             file.print(token)
           end
 
