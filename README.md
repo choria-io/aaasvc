@@ -22,11 +22,11 @@ $ mco ping
 19 replies max: 161.60 min: 131.23 avg: 151.21
 ```
 
-The token is valid for a configurable period after which time another `mco login` will be required. Users are able to perform only the actions that he is entitled. Users have no SSL certificates of their own.
+The token is valid for a configurable period after which time another `mco login` will be required. Users are able to perform only the actions that they are entitled. Users have no SSL certificates of their own - a system wide certificate might be needed to connect to middleware if configured to require TLS.
 
 ## Status
 
-This is under active development, see the Issues list for current outstanding items.
+This is under active development, see the Issues list for current outstanding items. Documentation and deployment details are sparse while it's being worked on, though its functional and we are happy to help you on our slack channel.
 
 ## Features
 
@@ -296,12 +296,17 @@ The only supported signer today is one that receives JWT tokens as issued by Okt
 {
   "signer": "basicjwt",
   "basicjwt_signer": {
-    "signing_certificate": "/etc/choria/signer/signing_cert.pem"
+    "signing_certificate": "/etc/choria/signer/signing_cert.pem",
+    "max_validity": "24h"
   }
 }
 ```
 
 The `signing_certificate` here is the public part of the signing key used by the Authenticators.  This is used to validate that the JWT was indeed issued by a trusted Authenticator.
+
+`max_validity` is the maximum amount of time from the present that the received JWT token is allowed in its `exp` field, this avoid infinite length tokens from being issued that can be a huge security risk.
+
+Tokens without `exp` will be denied in all cases.
 
 ## Auditing
 
@@ -343,7 +348,7 @@ Published messages will match the [io.choria.signer.v1.signature_audit](https://
 
 ## Statistics
 
-When `monitor_port` is set Prometheus statistics are reports on `/metrics`
+When `monitor_port` is set Prometheus statistics are reported on `/metrics`
 
 |Statistic|Description|
 |---------|-----------|

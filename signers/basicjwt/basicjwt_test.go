@@ -50,14 +50,14 @@ var _ = Describe("BasicJWT", func() {
 
 		fw, err = choria.NewWithConfig(cfg)
 		Expect(err).ToNot(HaveOccurred())
-		signer, err = New(fw, &SignerConfig{SigningPubKey: "testdata/cert.pem"}, "ginkgo")
+		signer, err = New(fw, &SignerConfig{SigningPubKey: "testdata/cert.pem", MaxValidity: "1h"}, "ginkgo")
 		Expect(err).ToNot(HaveOccurred())
 
 		signer.SetAuthorizer(authorizer)
 		signer.SetAuditors(auditor)
 
 		protocol.Secure = "false"
-		token = genToken()
+		token = genToken(time.Now().UTC().Add(time.Hour).Unix())
 		req = &models.SignRequest{Token: token}
 	})
 
@@ -90,6 +90,24 @@ var _ = Describe("BasicJWT", func() {
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Could not parse token: token contains an invalid number of segments"))
+			Expect(res.SecureRequest).To(BeNil())
+		})
+
+		It("Should handle JWT that expire too far in the future", func() {
+			req.Token = genToken(time.Now().UTC().Add(10 * time.Hour).Unix())
+			req.Request = []byte(rpcreqstr)
+			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
+			res := signer.Sign(req)
+			Expect(res.Error).To(Equal("Could not parse token: invalid claims: expiry is not set or it is too far in the future"))
+			Expect(res.SecureRequest).To(BeNil())
+		})
+
+		It("Should handle JWT without an exp claim", func() {
+			req.Token = genToken(0)
+			req.Request = []byte(rpcreqstr)
+			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
+			res := signer.Sign(req)
+			Expect(res.Error).To(Equal("Could not parse token: invalid claims: expiry is not set or it is too far in the future"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
@@ -127,12 +145,17 @@ var _ = Describe("BasicJWT", func() {
 	})
 })
 
-func genToken() string {
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS512"), jwt.MapClaims{
-		"exp":      time.Now().UTC().Add(time.Hour).Unix(),
+func genToken(exp int64) string {
+	claims := jwt.MapClaims{
 		"agents":   []string{"*"},
 		"callerid": "ginkgo=test",
-	})
+	}
+
+	if exp > 0 {
+		claims["exp"] = exp
+	}
+
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS512"), claims)
 
 	signKey, err := signKey("testdata/key.pem")
 	Expect(err).ToNot(HaveOccurred())
