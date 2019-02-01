@@ -17,18 +17,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"time"
 
-	"github.com/pkg/errors"
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/signers"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/choria-io/aaasvc/api/gen/models"
+	"github.com/choria-io/aaasvc/authorizers"
 	"github.com/choria-io/go-choria/choria"
 	"github.com/choria-io/go-protocol/protocol"
 	v1 "github.com/choria-io/go-protocol/protocol/v1"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/choria-io/aaasvc/api/gen/models"
-	"github.com/choria-io/aaasvc/authorizers"
 	"github.com/tidwall/gjson"
 )
 
@@ -36,10 +37,14 @@ import (
 type SignerConfig struct {
 	// SigningPubKey is the public certificate of the key used to sign the JWT
 	SigningPubKey string `json:"signing_certificate"`
+
+	// MaxValidity is the maximum token validity from current time to sign, this is to avoid someone issuing infinite or many year long tokens that can be a real problem should they leak
+	MaxValidity string `json:"max_validity"`
 }
 
 // BasicJWT is a very basic JWT based signer
 type BasicJWT struct {
+	maxExp time.Duration
 	site   string
 	pubkey string
 	auth   authorizers.Authorizer
@@ -50,7 +55,17 @@ type BasicJWT struct {
 
 // New creates a new instance of the BasicJWT signer
 func New(fw *choria.Framework, c *SignerConfig, site string) (signer *BasicJWT, err error) {
+	if c.MaxValidity == "" {
+		return nil, fmt.Errorf("max_validity is required")
+	}
+
+	d, err := time.ParseDuration(c.MaxValidity)
+	if err != nil {
+		return nil, fmt.Errorf("invalid max_validity duration: %s", err)
+	}
+
 	return &BasicJWT{
+		maxExp: d,
 		pubkey: c.SigningPubKey,
 		audit:  []auditors.Auditor{},
 		fw:     fw,
@@ -214,16 +229,44 @@ func (s *BasicJWT) parseJWT(req string) (token *jwt.Token, claims jwt.MapClaims,
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		signers.InvalidTokenCtr.WithLabelValues(s.site, "basicjwt").Inc()
-		return nil, nil, fmt.Errorf("Invalid claims body received")
+		return nil, nil, fmt.Errorf("invalid claims body received")
 	}
 
 	err = claims.Valid()
 	if err != nil {
 		signers.InvalidTokenCtr.WithLabelValues(s.site, "basicjwt").Inc()
-		return nil, nil, fmt.Errorf("Invalid claims: %s", err)
+		return nil, nil, fmt.Errorf("invalid claims: %s", err)
+	}
+
+	if !verifyExp(claims, jwt.TimeFunc().Add(s.maxExp)) {
+		signers.InvalidTokenCtr.WithLabelValues(s.site, "basicjwt").Inc()
+		return nil, nil, fmt.Errorf("invalid claims: expiry is not set or it is too far in the future")
 	}
 
 	return token, claims, nil
+}
+
+func verifyExp(claims jwt.MapClaims, maxAge time.Time) bool {
+	claimExp := int64(0)
+
+	switch exp := claims["exp"].(type) {
+	case float64:
+		claimExp = int64(exp)
+	case json.Number:
+		claimExp, _ = exp.Int64()
+	default:
+		return false
+	}
+
+	if claimExp == 0 {
+		return false
+	}
+
+	if claimExp > maxAge.Unix() {
+		return false
+	}
+
+	return true
 }
 
 // Parse the JSON request and if its a v1 choria request creates a v1.Request

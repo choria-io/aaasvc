@@ -4,24 +4,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"time"
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/authenticators"
 	"github.com/choria-io/aaasvc/authenticators/okta"
 	"github.com/choria-io/aaasvc/authenticators/userlist"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 
-	"github.com/pkg/errors"
 	"github.com/choria-io/aaasvc/auditors/logfile"
 	"github.com/choria-io/aaasvc/auditors/natsstream"
 	"github.com/choria-io/aaasvc/authorizers/actionlist"
 	"github.com/choria-io/aaasvc/signers"
+	"github.com/pkg/errors"
 
 	"github.com/choria-io/aaasvc/authorizers"
 
+	"github.com/choria-io/aaasvc/signers/basicjwt"
 	"github.com/choria-io/go-choria/choria"
 	cconf "github.com/choria-io/go-choria/config"
-	"github.com/choria-io/aaasvc/signers/basicjwt"
 )
 
 // Config configures the signing service
@@ -138,6 +140,9 @@ func New(file string) (conf *Config, err error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not configure %s signer", conf.SignerType)
 	}
+
+	// all JWT operations should happen in UTC
+	jwt.TimeFunc = func() time.Time { return time.Now().UTC() }
 
 	return conf, nil
 }

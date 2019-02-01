@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-openapi/loads"
-	flags "github.com/jessevdk/go-flags"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/choria-io/aaasvc/api/gen/restapi"
 	"github.com/choria-io/aaasvc/api/gen/restapi/operations"
 	"github.com/choria-io/aaasvc/authenticators"
 	"github.com/choria-io/aaasvc/config"
 	"github.com/choria-io/aaasvc/signers"
+	"github.com/go-openapi/loads"
+	flags "github.com/jessevdk/go-flags"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/pkg/errors"
 )
