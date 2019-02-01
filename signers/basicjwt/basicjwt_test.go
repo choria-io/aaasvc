@@ -113,7 +113,7 @@ var _ = Describe("BasicJWT", func() {
 
 		It("Should handle failed authorizations", func() {
 			req.Request = []byte(rpcreqstr)
-			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test", gomock.Any()).AnyTimes()
+			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(false, fmt.Errorf("simulated failure"))
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Could not authorize request: simulated failure"))
@@ -122,7 +122,7 @@ var _ = Describe("BasicJWT", func() {
 
 		It("Should audit denied requests", func() {
 			req.Request = []byte(rpcreqstr)
-			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test", gomock.Any()).AnyTimes()
+			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(false, nil)
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Not allowed to perform request"))
@@ -131,7 +131,7 @@ var _ = Describe("BasicJWT", func() {
 
 		It("Should create a valid SR", func() {
 			req.Request = []byte(rpcreqstr)
-			auditor.EXPECT().Audit(auditors.Allow, "ginkgo=test", gomock.Any()).AnyTimes()
+			auditor.EXPECT().Audit(auditors.Allow, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(true, nil)
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal(""))
@@ -148,7 +148,7 @@ var _ = Describe("BasicJWT", func() {
 func genToken(exp int64) string {
 	claims := jwt.MapClaims{
 		"agents":   []string{"*"},
-		"callerid": "ginkgo=test",
+		"callerid": "ginkgo=test@example.net",
 	}
 
 	if exp > 0 {

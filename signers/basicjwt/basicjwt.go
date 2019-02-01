@@ -181,8 +181,8 @@ func (s *BasicJWT) setCaller(req protocol.Request, claims jwt.MapClaims) error {
 		return errors.Wrap(err, "could not set caller")
 	}
 
-	caller = strings.Replace(caller, "@", "_", 1)
-	caller = strings.Replace(caller, ".", "_", 1)
+	caller = strings.Replace(caller, "@", "_", -1)
+	caller = strings.Replace(caller, ".", "_", -1)
 
 	req.SetCallerID(caller)
 
