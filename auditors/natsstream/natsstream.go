@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/go-choria/srvcache"
 	"github.com/choria-io/go-protocol/protocol"
 	"github.com/pkg/errors"
-	"github.com/choria-io/aaasvc/auditors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/go-choria/backoff"
@@ -48,7 +48,8 @@ type NatsStream struct {
 type Notification struct {
 	Protocol string          `json:"protocol"`
 	CallerID string          `json:"callerid"`
-	Action   int             `json:"action"`
+	Action   string          `json:"action"`
+	Site     string          `json:"site"`
 	Request  json.RawMessage `json:"request"`
 }
 
@@ -79,7 +80,8 @@ func (ns *NatsStream) Audit(act auditors.Action, caller string, req protocol.Req
 	n := &Notification{
 		Protocol: "io.choria.signer.v1.signature_audit",
 		CallerID: caller,
-		Action:   int(act),
+		Action:   auditors.ActionNames[act],
+		Site:     ns.site,
 		Request:  json.RawMessage(j),
 	}
 
