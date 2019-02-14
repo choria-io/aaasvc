@@ -166,6 +166,10 @@ func configureAuthenticator(conf *Config) error {
 	var err error
 	var auth authenticators.Authenticator
 
+	if conf.AuthenticatorType == "" {
+		return nil
+	}
+
 	switch conf.AuthenticatorType {
 	case "okta":
 		if conf.OktaAuthenticator == nil {
@@ -236,6 +240,10 @@ func newAuditors(conf *Config) error {
 }
 
 func newAuthorizer(conf *Config) error {
+	if conf.AuthorizerType == "" {
+		return nil
+	}
+
 	if conf.signer == nil {
 		return fmt.Errorf("signer has not been set")
 	}
@@ -251,6 +259,10 @@ func newAuthorizer(conf *Config) error {
 }
 
 func configureSigner(conf *Config) error {
+	if conf.SignerType == "" {
+		return nil
+	}
+
 	switch conf.SignerType {
 	case "basicjwt":
 		if conf.BasicJWTSigner == nil {
