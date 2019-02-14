@@ -3,6 +3,7 @@ package natsstream
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/choria-io/aaasvc/auditors"
 
@@ -41,6 +42,7 @@ var _ = Describe("Auditors/NATSStream", func() {
 			Expect(notification.CallerID).To(Equal("choria=allowed"))
 			Expect(notification.Action).To(Equal("allow"))
 			Expect(notification.Site).To(Equal("GINKGO"))
+			Expect(notification.Time).To(BeNumerically(">=", int64(time.Now().UTC().Unix())))
 			Expect(notification.Request).To(Equal(json.RawMessage(j)))
 
 			msg = <-auditor.outbox
@@ -50,6 +52,8 @@ var _ = Describe("Auditors/NATSStream", func() {
 			Expect(notification.CallerID).To(Equal("choria=denied"))
 			Expect(notification.Action).To(Equal("deny"))
 			Expect(notification.Site).To(Equal("GINKGO"))
+			Expect(notification.Time).To(BeNumerically(">=", int64(time.Now().UTC().Unix())))
+
 			Expect(notification.Request).To(Equal(json.RawMessage(j)))
 		})
 	})
