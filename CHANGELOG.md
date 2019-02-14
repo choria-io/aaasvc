@@ -1,5 +1,9 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/02/14|      |Release 0.0.3                                                                                            |
+|2019/02/14|25    |Allow disabling authenticators and signers                                                               |
+|2019/02/01|22    |Make callerids more compatible with mco standards                                                        |
+|2019/02/01|21    |Enforce exp headers and do not accept ones that are too far in the future                                |
 |2019/01/31|      |Release 0.0.2                                                                                            |
 |2019/01/31|18    |Write token with mode `0600`                                                                             |
 |2019/01/30|16    |Syntax fixes to login.rb                                                                                 |
