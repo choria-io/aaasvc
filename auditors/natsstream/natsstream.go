@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/go-choria/srvcache"
@@ -50,6 +51,7 @@ type Notification struct {
 	CallerID string          `json:"callerid"`
 	Action   string          `json:"action"`
 	Site     string          `json:"site"`
+	Time     int64           `json:"time"`
 	Request  json.RawMessage `json:"request"`
 }
 
@@ -82,6 +84,7 @@ func (ns *NatsStream) Audit(act auditors.Action, caller string, req protocol.Req
 		CallerID: caller,
 		Action:   auditors.ActionNames[act],
 		Site:     ns.site,
+		Time:     time.Now().UTC().Unix(),
 		Request:  json.RawMessage(j),
 	}
 
