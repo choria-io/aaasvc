@@ -1,5 +1,9 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/02/15|      |Release 0.1.0                                                                                            |
+|2019/02/14|30    |Include a UTC Unix time stamp in the nats notification                                                   |
+|2019/02/14|28    |Instead of 0, 1 or 2 use unknown, allow or deny for the action taken in nats notifications               |
+|2019/02/14|28    |Include the `site` that produced the audit message in the nats notification                              |
 |2019/02/14|      |Release 0.0.3                                                                                            |
 |2019/02/14|25    |Allow disabling authenticators and signers                                                               |
 |2019/02/01|22    |Make callerids more compatible with mco standards                                                        |
