@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/04/19|      |Release 0.2.0                                                                                            |
+|2019/04/19|34    |Run as the root user on el7 as well                                                                      |
 |2019/02/15|      |Release 0.1.0                                                                                            |
 |2019/02/14|30    |Include a UTC Unix time stamp in the nats notification                                                   |
 |2019/02/14|28    |Instead of 0, 1 or 2 use unknown, allow or deny for the action taken in nats notifications               |
