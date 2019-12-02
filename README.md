@@ -61,6 +61,8 @@ Additionally you need:
  * A key, certificate and CA file used to serve HTTPS requests, signed by a CA in the same chain as the clients
  * Configuration for the signer and the Choria framework.
 
+There is a Puppet module [exaldraen-choria_aaasvc](https://forge.puppet.com/exaldraen/choria_aaasvc) which will automate the installation and configuration of the AAA service, but currently still requires you to provision the certificates manually.
+
 ### Signer Configuration
 
 The signer uses a JSON file for configuration and lets you compose the system as you need it, below is a basic example:
