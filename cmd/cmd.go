@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -14,9 +13,6 @@ var (
 	cfile   string
 	err     error
 	pidfile string
-
-	ctx    context.Context
-	cancel func()
 
 	runcmd   *kingpin.CmdClause
 	cryptcmd *kingpin.CmdClause

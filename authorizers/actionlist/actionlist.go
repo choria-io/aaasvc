@@ -70,7 +70,7 @@ func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allo
 	err = claims.Valid()
 	if err != nil {
 		a.log.Warnf("Received request %s from %s@%s for agent %s with invalid JWT claims", req.RequestID(), req.CallerID(), req.SenderID(), req.Agent())
-		return false, req.Agent(), fmt.Errorf("Invalid claims body received: %s", err)
+		return false, req.Agent(), fmt.Errorf("invalid claims body received: %s", err)
 	}
 
 	rpcreq := &mcorpc.Request{}
@@ -97,13 +97,13 @@ func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allo
 func validateAction(agent string, action string, claims jwt.MapClaims, log *logrus.Entry) (ok bool, err error) {
 	agents, ok := claims["agents"].([]interface{})
 	if !ok {
-		return false, fmt.Errorf("Invalid agent claims")
+		return false, fmt.Errorf("invalid agent claims")
 	}
 
 	for _, allow := range agents {
 		claim, ok := allow.(string)
 		if !ok {
-			return false, fmt.Errorf("Invalid agent claim found in token %s", allow)
+			return false, fmt.Errorf("invalid agent claim found in token %s", allow)
 		}
 
 		// all things are allowed

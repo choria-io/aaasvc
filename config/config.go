@@ -19,11 +19,9 @@ import (
 	"github.com/choria-io/aaasvc/signers"
 	"github.com/pkg/errors"
 
-	"github.com/choria-io/aaasvc/authorizers"
-
 	"github.com/choria-io/aaasvc/signers/basicjwt"
 	"github.com/choria-io/go-choria/choria"
-	cconf "github.com/choria-io/go-choria/config"
+	cconf "github.com/choria-io/go-config"
 )
 
 // Config configures the signing service
@@ -95,7 +93,6 @@ type Config struct {
 	fw            *choria.Framework
 	audit         []auditors.Auditor
 	authenticator authenticators.Authenticator
-	authorizer    authorizers.Authorizer
 	signer        signers.Signer
 }
 

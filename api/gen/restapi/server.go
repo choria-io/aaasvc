@@ -411,7 +411,7 @@ func (s *Server) Shutdown() error {
 
 func (s *Server) handleShutdown(wg *sync.WaitGroup, serversPtr *[]*http.Server) {
 	// wg.Done must occur last, after s.api.ServerShutdown()
-	// (to preserve old behaviour)
+	// (to preserve old behavior)
 	defer wg.Done()
 
 	<-s.shutdown

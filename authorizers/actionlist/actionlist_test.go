@@ -63,7 +63,7 @@ var _ = Describe("Authorizers/Actionlist", func() {
 			}
 
 			ok, err := validateAction("agent", "action", claims, log)
-			Expect(err).To(MatchError("Invalid agent claims"))
+			Expect(err).To(MatchError("invalid agent claims"))
 			Expect(ok).To(BeFalse())
 		})
 
@@ -87,6 +87,7 @@ var _ = Describe("Authorizers/Actionlist", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			ok, err = validateAction("other", "action", claims, log)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(ok).To(BeFalse())
 		})
 
@@ -100,9 +101,11 @@ var _ = Describe("Authorizers/Actionlist", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			ok, err = validateAction("rpcutil", "other", claims, log)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(ok).To(BeFalse())
 
 			ok, err = validateAction("other", "action", claims, log)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(ok).To(BeFalse())
 		})
 	})
