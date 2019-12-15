@@ -83,7 +83,8 @@ The signer uses a JSON file for configuration and lets you compose the system as
   "tls_key": "/etc/choria/signer/tls/key.pem",
   "tls_ca":  "/etc/choria/signer/tls/ca.pem",
   "basicjwt_signer": {
-    "signing_certificate": "/etc/choria/signer/signer/pub.pem"
+    "signing_certificate": "/etc/choria/signer/signer/pub.pem",
+    "max_validity":"2h"
   },
   "logfile_auditor": {
     "logfile": "/var/log/choria_signer/audit.log"
@@ -96,7 +97,7 @@ The signer uses a JSON file for configuration and lets you compose the system as
         "username": "puppetadmin",
         "password": "$2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e",
         "acls": [
-          "puppet.*",
+          "puppet.*"
         ]
       }
     ]
@@ -140,7 +141,7 @@ There are many certificates here, lets look at the ones listed in the samples ab
 |----|-----------|
 |signer/choria/*.pem|Certificate, key and CA used to sign requests within your DC, issued by the CA in the DC|
 |signer/signing/*.pem|Certificate and Key used to sign JWT tokens, no particular need for a specific CA to sign it|
-|signer/tls/*.pem|Certificate, Key and CA Chain that will communicate with clients requesting tokens and logins, must be issued such that clients will be trusted by the CA chain|
+|signer/tls/*.pem|Certificate, Key and CA Chain that will communicate with clients requesting tokens and logins, clients will disable verify when connecting|
 
 ### Testing Login
 
@@ -170,15 +171,14 @@ You can configure your system wide Choria CLI with lines like here, this will en
 
 ```ini
 # usual settings omitted
-plugin.choria.security.request_signer.url = http://localhost:8080/choria/v1/sign
+plugin.choria.security.request_signer.url = https://localhost:8080/choria/v1/sign
 plugin.choria.security.request_signer.token_environment = CHORIA_TOKEN
-plugin.choria.security.request_signer.force = 1
 ```
 
 You'll need to set the token in your shell:
 
 ```
-export CHORIA_TOKEN=$(curl -s --request POST -d '{"username":"puppetadmin", "password":"secret"}' -H "Content-type: application/json" http://localhost:8080/choria/v1/login)
+export CHORIA_TOKEN=$(curl -s --request POST -d '{"username":"puppetadmin", "password":"secret"}' -H "Content-type: application/json" https://localhost:8080/choria/v1/login)
 ```
 
 At this point you can use `mco` cli as always, requests will be sent to the signer for signing, users will not need their own certificates or use `mco choria request_cert`
