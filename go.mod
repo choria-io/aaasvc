@@ -4,9 +4,9 @@ go 1.13
 
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
-	github.com/choria-io/go-choria v0.13.1-0.20191215123236-f6a9da7142b9
-	github.com/choria-io/go-config v0.0.6-0.20191214141246-32872409688e
-	github.com/choria-io/go-protocol v1.3.3-0.20191215122213-63506e5b9062
+	github.com/choria-io/go-choria v0.13.0
+	github.com/choria-io/go-config v0.0.5
+	github.com/choria-io/go-protocol v1.3.2
 	github.com/choria-io/go-srvcache v0.0.6
 	github.com/choria-io/mcorpc-agent-provider v0.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -23,7 +23,7 @@ require (
 	github.com/okta/okta-sdk-golang v0.1.0
 	github.com/onsi/ginkgo v1.10.3
 	github.com/onsi/gomega v1.7.1
-	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1
 	github.com/sirupsen/logrus v1.4.2
