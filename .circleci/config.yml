@@ -2,15 +2,18 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.13
 
     working_directory: /go/src/github.com/choria-io/aaasvc
 
     steps:
       - checkout
-      - run: go get github.com/Masterminds/glide
       - run: go get -u github.com/onsi/ginkgo/ginkgo
-      - run: glide install
+      - run: go mod download
+      - run: go get -u honnef.co/go/tools/cmd/staticcheck
+      - run: go get -u github.com/client9/misspell/cmd/misspell
+      - run: go list ./...|xargs staticcheck
+      - run: find . -type f -name "*.go" | grep -v "/vendor/" | xargs misspell -error -locale US
       - run: ginkgo -r -skipMeasurements
       - run: mkdir -p /tmp/workspace
       - run: cd .. ; tar -czf /tmp/workspace/aaasvc.tgz aaasvc
@@ -21,14 +24,14 @@ jobs:
 
   build_el6_64bit_rpms: &pkg_build
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.13
 
     working_directory: /go/src/github.com/choria-io/aaasvc
 
     environment:
       PACKAGE: el6_64
       BUILD: foss
-      BUILDER: choria/packager:el5-go1.10
+      BUILDER: choria/packager:el7-go1.13
 
     steps: &std_build_steps
       - setup_remote_docker
@@ -73,11 +76,11 @@ jobs:
     environment:
       PACKAGE: el7_64
       BUILD: foss
-      BUILDER: choria/packager:el7-go1.10
+      BUILDER: choria/packager:el7-go1.13
 
   gather_artifacts:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.13
 
     steps:
       - attach_workspace:
@@ -130,25 +133,21 @@ workflows:
       - build_el7_64bit_rpms:
           requires:
             - test
-          filters:
-            *semver_only
+          filters: *semver_only
 
       - gather_artifacts:
           requires:
-             - build_el6_64bit_rpms
-             - build_el7_64bit_rpms
-          filters:
-            *semver_only
+            - build_el6_64bit_rpms
+            - build_el7_64bit_rpms
+          filters: *semver_only
 
       - release_hold:
           type: approval
           requires:
             - gather_artifacts
-          filters:
-            *semver_only
+          filters: *semver_only
 
       - release_packagecloud:
           requires:
             - release_hold
-          filters:
-            *semver_only
+          filters: *semver_only

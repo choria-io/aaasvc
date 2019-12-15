@@ -16,7 +16,7 @@ import (
 	"github.com/choria-io/go-choria/choria"
 	gomock "github.com/golang/mock/gomock"
 
-	cconf "github.com/choria-io/go-choria/config"
+	cconf "github.com/choria-io/go-config"
 	jwt "github.com/dgrijalva/jwt-go"
 
 	. "github.com/onsi/ginkgo"
@@ -80,7 +80,7 @@ var _ = Describe("BasicJWT", func() {
 
 		It("Should handle bad requests", func() {
 			res := signer.Sign(req)
-			Expect(res.Error).To(Equal("Could not parse request: Invalid request version '' expected choria:request:1"))
+			Expect(res.Error).To(Equal("Could not parse request: invalid request version '' expected choria:request:1"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 

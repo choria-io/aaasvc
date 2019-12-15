@@ -76,9 +76,7 @@ func New(fw *choria.Framework, c *SignerConfig, site string) (signer *BasicJWT, 
 
 // SetAuditors adds auditors to be called when dealing with signing requests
 func (s *BasicJWT) SetAuditors(as ...auditors.Auditor) {
-	for _, auditor := range as {
-		s.audit = append(s.audit, auditor)
-	}
+	s.audit = append(s.audit, as...)
 }
 
 // SetAuthorizer configures the authorizer to use
@@ -273,17 +271,17 @@ func verifyExp(claims jwt.MapClaims, maxAge time.Time) bool {
 func newRequestFromJSON(jreq []byte) (protocol.Request, error) {
 	version := gjson.GetBytes(jreq, "protocol").String()
 	if version != "choria:request:1" {
-		return nil, fmt.Errorf("Invalid request version '%s' expected choria:request:1", version)
+		return nil, fmt.Errorf("invalid request version '%s' expected choria:request:1", version)
 	}
 
 	request, err := v1.NewRequest("", "", "", 0, "", "mcollective")
 	if err != nil {
-		return nil, fmt.Errorf("Could not parse request: %s", err)
+		return nil, fmt.Errorf("could not parse request: %s", err)
 	}
 
 	err = json.Unmarshal(jreq, request)
 	if err != nil {
-		return nil, fmt.Errorf("Could not parse request: %s", err)
+		return nil, fmt.Errorf("could not parse request: %s", err)
 	}
 
 	return request, nil

@@ -11,14 +11,14 @@ import (
 	"time"
 
 	"github.com/choria-io/aaasvc/auditors"
-	"github.com/choria-io/go-choria/srvcache"
 	"github.com/choria-io/go-protocol/protocol"
+	"github.com/choria-io/go-srvcache"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/go-choria/backoff"
 	"github.com/choria-io/go-choria/choria"
-	stan "github.com/nats-io/go-nats-streaming"
+	stan "github.com/nats-io/stan.go"
 )
 
 // AuditorConfig configures the NATS Stream auditor
@@ -36,9 +36,8 @@ type AuditorConfig struct {
 // NatsStream is a auditors.Auditor that publishes to NATS Stream
 type NatsStream struct {
 	conf    *AuditorConfig
-	servers func() ([]srvcache.Server, error)
+	servers func() (srvcache.Servers, error)
 	sc      stan.Conn
-	nc      choria.Connector
 	fw      *choria.Framework
 	log     *logrus.Entry
 	outbox  chan interface{}
@@ -108,7 +107,7 @@ func (ns *NatsStream) connect() (err error) {
 
 	conn, err := ns.fw.NewConnector(ctx, ns.servers, cid, ns.log)
 	if err != nil {
-		return fmt.Errorf("Could not start NATS connection: %s", err)
+		return fmt.Errorf("could not start NATS connection: %s", err)
 	}
 
 	start := func() error {
@@ -193,13 +192,13 @@ func (ns *NatsStream) connect() (err error) {
 	return nil
 }
 
-func (c *AuditorConfig) servers() (servers []srvcache.Server, err error) {
+func (c *AuditorConfig) servers() (servers srvcache.Servers, err error) {
 	servers, err = srvcache.StringHostsToServers(strings.Split(c.ServerList, ","), "nats")
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not parse stream servers")
 	}
 
-	if len(servers) == 0 {
+	if servers.Count() == 0 {
 		return nil, errors.New("no servers specified")
 	}
 
