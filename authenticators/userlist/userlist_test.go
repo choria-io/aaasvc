@@ -35,6 +35,7 @@ var _ = Describe("Authenticators/Userlist", func() {
 					Username: "bob",
 					Password: "$2a$06$chB5d2pCKEzM6xlDoPvofuKW52piJ5f8fGvxHPTDaeSJOSNY76yai",
 					ACLs:     []string{"*"},
+					OPAPolicyFile: "testdata/test.rego",
 				},
 			},
 		}
@@ -100,9 +101,22 @@ var _ = Describe("Authenticators/Userlist", func() {
 			Expect(ok).To(BeTrue())
 			Expect(agents).To(HaveLen(1))
 			Expect(agents[0].(string)).To(Equal("*"))
+
+			policy, ok := claims["opa_policy"].(string)
+			Expect(ok).To(BeTrue())
+			Expect(policy).To(Equal(readFixture("testdata/test.rego")))
 		})
 	})
 })
+
+func readFixture(f string) string {
+	c, err := ioutil.ReadFile(f)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(c)
+}
 
 func signKey() (*rsa.PublicKey, error) {
 	certBytes, err := ioutil.ReadFile("testdata/cert.pem")
