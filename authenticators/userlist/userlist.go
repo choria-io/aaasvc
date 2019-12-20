@@ -1,4 +1,4 @@
-// Packager userlist provide a static configuration based authentication system
+// Package userlist provide a static configuration based authentication system
 //
 // Each user has a set of ACLs that are applied to the generated token, ACL strings
 // have to comply with the signer you choose, refer to signer documentation for
@@ -19,13 +19,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// User is a choria user
-type User struct {
-	Username string   `json:"username"`
-	Password string   `json:"password"`
-	ACLs     []string `json:"acls"`
-}
 
 // AuthenticatorConfig configures the user/pass authenticator
 type AuthenticatorConfig struct {
@@ -90,7 +83,7 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS512"), jwt.MapClaims{
+	claims := map[string]interface{}{
 		"exp":      time.Now().UTC().Add(a.validity).Unix(),
 		"nbf":      time.Now().UTC().Add(-1 * time.Minute).Unix(),
 		"iat":      time.Now().UTC().Unix(),
@@ -98,7 +91,20 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 		"callerid": fmt.Sprintf("up=%s", req.Username),
 		"sub":      fmt.Sprintf("up=%s", req.Username),
 		"agents":   user.ACLs,
-	})
+	}
+
+	policy, err := user.OpenPolicy()
+	if err != nil {
+		a.log.Warnf("Reading OPA policy for user %s failed: %s", req.Username, err)
+		resp.Error = "Login failed"
+		return
+	}
+
+	if policy != "" {
+		claims["opa_policy"] = policy
+	}
+
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS512"), jwt.MapClaims(claims))
 
 	signKey, err := a.signKey()
 	if err != nil {

@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/choria-io/go-choria v0.13.0
+	github.com/choria-io/go-client v0.5.2
 	github.com/choria-io/go-config v0.0.5
 	github.com/choria-io/go-protocol v1.3.2
 	github.com/choria-io/go-srvcache v0.0.6
@@ -21,8 +22,9 @@ require (
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/nats-io/stan.go v0.5.2
 	github.com/okta/okta-sdk-golang v0.1.0
-	github.com/onsi/ginkgo v1.10.3
-	github.com/onsi/gomega v1.7.1
+	github.com/onsi/ginkgo v1.11.0
+	github.com/onsi/gomega v1.8.0
+	github.com/open-policy-agent/opa v0.16.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1

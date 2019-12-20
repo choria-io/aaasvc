@@ -32,10 +32,11 @@ This is under active development, see the Issues list for current outstanding it
 
  * Authentication
    * [Okta identity cloud](https://okta.com/)
-   * Static configured users
+   * Static configured users with support for basic agent+action ACLs as well as Open Policy Agent policies
    * Capable of running centrally separate from signers
  * Authorization
    * JWT token claims based allow list for access to agents and actions
+   * JWT token claims based Open Policy Agent rego files
  * Auditing
    * Log file based auditing
    * Messages published to NATS Stream
@@ -99,6 +100,11 @@ The signer uses a JSON file for configuration and lets you compose the system as
         "acls": [
           "puppet.*"
         ]
+      },
+      {
+        "username": "admin",
+        "password": ".....",
+        "opa_policy_file": "/etc/choria/signer/common.rego"
       }
     ]
   }
@@ -188,7 +194,7 @@ At this point you can use `mco` cli as always, requests will be sent to the sign
 
 Authentication is the act of validating a person is who he claims to be, this is done using a username, token, 2FA or other similar means.
 
-This supports a number of authentication schemes each would issue a JWT token to the user that will then be authorised and signed by a Signer.
+This supports a number of authentication schemes each would issue a JWT token to the user that will then be authorized and signed by a Signer.
 
 While authentication is provided by this tool, it's optional you might choose to create JWT tokens using another method of your choosing, the login feature will only be enabled if any authenticator is configured.
 
@@ -216,6 +222,11 @@ $2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e
         "acls": [
           "puppet.*",
         ]
+      },
+      {
+        "username": "admin",
+        "password": ".....",
+        "opa_policy_file": "/etc/choria/signer/common.rego"
       }
     ]
   }
@@ -253,7 +264,16 @@ Here we configure `acls` based on Okta groups - all users can `rpcutil ping`, th
 
 ## Authorization
 
+Authorization is how you declare what an authenticated user can do, in this system the JWT tokens can contain either a simple agent/action list or a full features [Open Policy Agent](https://www.openpolicyagent.org/) based policy.
+
+
 Authorization is how you declare what an authenticated user can do, in this system the JWT tokens have an `agents` claim with the following:
+
+The authorizers will then inspect this and determine if the user should be allowed to make a request he is requesting we sign.
+
+### Action List
+
+This authorizer reads the `agents` claim in the JWT token and allow/deny the user.  Examples below.
 
 ```json
 {
@@ -263,12 +283,6 @@ Authorization is how you declare what an authenticated user can do, in this syst
   ]
 }
 ```
-
-The authorizers will then inspect this and determine if the user should be allowed to make a request he is requesting we sign.
-
-### Action List
-
-This the only support authorizer at present, it reads the `agents` claim in the JWT token and allow/deny the user.  Examples below.
 
  * `*` - all actions are allowed
  * `puppet.status` - one specific action is allowed
@@ -283,6 +297,85 @@ Multiple agent entries can be listed in the claim and any that match will allow 
 ```
 
 It has no specific configuration.
+
+### Open Policy Agent
+
+The Open Policy Agent based policies allow for very flexible policy to be embedded into the JWT tokens, it allow for policies we have never supported in the past:
+
+ * Ensuring filters are used to avoid huge blast radius requests by accident
+ * Ensuring specific fact, class or identity filters are used
+ * Ensuring a specific collective is used
+ * Contents of the JWT claim
+ * Checks based on the site the aaasvc is deployed in
+ * Checks on every input being sent to the action
+
+Here's a complex policy:
+
+```rego
+# must be in this package
+package choria.aaa.policy
+
+# it only checks `allow`, its good to default false
+default allow = false
+
+# user can deploy only frontend of myco into production but only in malta
+allow {
+	input.action == "deploy"
+	input.agent == "myco"
+	input.data.component == "frontend"
+	requires_fact_filter("country=mt")
+	input.collective == "production"
+}
+
+# can ask status anywhere in any environment
+allow {
+	input.action == "status"
+	input.agent == "myco"
+}
+
+# user can do anything myco related in development
+allow {
+	input.agent == "myco"
+	input.collective == "development"
+}
+```
+
+Here we use the `requires_fact_filter()` to ensure a specific fact filter is used, we have these custom functions:
+
+ * `requires_filter()` - ensures that at least one of identity, class, compound of fact filters is not empty
+ * `requires_fact_filter("country=mt")` - ensures the specific fact filter is present in the request
+ * `requires_class_filter("apache")` - ensures the specific class filter is present in the request
+ * `requires_identity_filter("some.node")` - ensures the specific identity filter is present in the request
+
+And you'll have these input items at your disposal:
+
+ * `agent` - the agent being invoked
+ * `action` - the action being invoked
+ * `data` - the contents of the request - all the inputs being sent to the action
+ * `sender` - the sender host
+ * `collective` - the targeted sub collective
+ * `ttl` - the ttl of the request
+ * `time` - the time the request was made
+ * `site` - the site hosting the aaasvcs (from its config)
+ * `claims` - all the JWT claims
+
+You can store this in a file and specify the user in the userlist plugin like this:
+
+```json
+  {
+    "username": "admin",
+    "password": ".....",
+    "opa_policy_file": "/etc/choria/signer/admin.rego"
+  }
+```
+
+To activate this authorizer configure it like this:
+
+```json
+{
+    "authorizer": "opa"
+}
+```
 
 ## Signing
 

@@ -16,6 +16,7 @@ import (
 	"github.com/choria-io/aaasvc/auditors/logfile"
 	"github.com/choria-io/aaasvc/auditors/natsstream"
 	"github.com/choria-io/aaasvc/authorizers/actionlist"
+	"github.com/choria-io/aaasvc/authorizers/opa"
 	"github.com/choria-io/aaasvc/signers"
 	"github.com/pkg/errors"
 
@@ -50,6 +51,7 @@ type Config struct {
 	// AuthorizerType is the type of authorizer to use
 	//
 	// * actionlist - allows actions from the JWT claims, requires no additional config
+	// * opa - allows requests based on open policy agent configuration
 	AuthorizerType string `json:"authorizer"`
 
 	// SignerType is the type of signer to use
@@ -248,6 +250,10 @@ func newAuthorizer(conf *Config) error {
 	switch conf.AuthorizerType {
 	case "actionlist":
 		conf.signer.SetAuthorizer(actionlist.New(conf.Logger("authorizer"), conf.Site))
+		return nil
+
+	case "opa":
+		conf.signer.SetAuthorizer(opa.New(conf.Logger("authorizer"), conf.Site))
 		return nil
 
 	default:
