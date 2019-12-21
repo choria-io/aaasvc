@@ -8,3 +8,6 @@ test_patterns = [
 [[analyzers]]
 name = "go"
 enabled = true
+
+  [analyzers.meta]
+  import_path = "github.com/choria-io/aaasvc"
