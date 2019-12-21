@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/choria-io/aaasvc/auditors"
+	"github.com/choria-io/aaasvc/auditors/notification"
 	"github.com/choria-io/go-protocol/protocol"
 	"github.com/choria-io/go-srvcache"
 	"github.com/pkg/errors"
@@ -44,16 +45,6 @@ type NatsStream struct {
 	site    string
 }
 
-// Notification is the notification being sent and shall comply with https://choria.io/schemas/choria/signer/v1/signature_audit.json
-type Notification struct {
-	Protocol string          `json:"protocol"`
-	CallerID string          `json:"callerid"`
-	Action   string          `json:"action"`
-	Site     string          `json:"site"`
-	Time     int64           `json:"time"`
-	Request  json.RawMessage `json:"request"`
-}
-
 // New creates a new instance of the NATS Stream auditor
 func New(fw *choria.Framework, c *AuditorConfig, site string) (auditor *NatsStream, err error) {
 	auditor = &NatsStream{
@@ -78,7 +69,7 @@ func (ns *NatsStream) Audit(act auditors.Action, caller string, req protocol.Req
 		return errors.Wrap(err, "could not JSON encode request")
 	}
 
-	n := &Notification{
+	n := &notification.SignerAudit{
 		Protocol: "io.choria.signer.v1.signature_audit",
 		CallerID: caller,
 		Action:   auditors.ActionNames[act],
@@ -96,12 +87,7 @@ func (ns *NatsStream) connect() (err error) {
 	ctx := context.Background()
 
 	reconn := make(chan struct{})
-
-	cid, err := choria.NewRequestID()
-	if err != nil {
-		return errors.Wrap(err, "could not create a client id")
-	}
-
+	cid := choria.UniqueID()
 	servers, _ := ns.servers()
 	ns.log.Warnf("connecting to stream: %#v\n", servers)
 

@@ -20,14 +20,14 @@ require (
 	github.com/go-yaml/yaml v2.1.0+incompatible // indirect
 	github.com/golang/mock v1.3.1
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/nats-io/stan.go v0.5.2
+	github.com/nats-io/stan.go v0.6.0
 	github.com/okta/okta-sdk-golang v0.1.0
 	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.8.0
+	github.com/onsi/gomega v1.8.1
 	github.com/open-policy-agent/opa v0.16.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/prometheus/client_golang v1.2.1
+	github.com/prometheus/client_golang v1.3.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/tidwall/gjson v1.3.5
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4

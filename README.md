@@ -42,6 +42,7 @@ This is under active development, see the Issues list for current outstanding it
  * Auditing
    * Log file based auditing
    * Messages published to NATS Stream
+   * Messages published to NATS JetStream
  * Signing
    * JWT token based signer
    * Does not require access to the login service
@@ -443,6 +444,22 @@ Published messages will match the [io.choria.signer.v1.signature_audit](https://
   "auditors": ["natsstream"],
   "natsstream_auditor": {
     "cluster_id": "test-cluster",
+    "servers": "nats://localhost:4222",
+    "topic": "audit"
+  }
+}
+```
+
+### NATS JetStream
+
+The JetStream auditor is similar to the NATS Stream one but publishes to the upcoming JetStream Streaming Server.
+
+Published messages will match the [io.choria.signer.v1.signature_audit](https://choria.io/schemas/choria/signer/v1/signature_audit.json) JSON Schema.
+
+```json
+{
+  "auditors": ["jetstream"],
+  "jetstream_auditor": {
     "servers": "nats://localhost:4222",
     "topic": "audit"
   }
