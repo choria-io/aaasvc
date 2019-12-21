@@ -65,9 +65,9 @@ func New(fw *choria.Framework, c *AuditorConfig, site string) (auditor *NatsStre
 		site:    site,
 	}
 
-	auditor.connect()
+	err = auditor.connect()
 
-	return auditor, nil
+	return auditor, err
 }
 
 // Audit implements auditors.Auditor

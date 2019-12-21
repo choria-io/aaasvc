@@ -4,9 +4,9 @@ package logfile
 import (
 	"os"
 
+	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/go-protocol/protocol"
 	"github.com/pkg/errors"
-	"github.com/choria-io/aaasvc/auditors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,7 +28,7 @@ func New(c *AuditorConfig, site string) (auditor *Logfile, err error) {
 
 	if c.Logfile != "" {
 		log.Formatter = &logrus.JSONFormatter{}
-		file, err := os.OpenFile(c.Logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		file, err := os.OpenFile(c.Logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not set up logfile %s", c.Logfile)
 		}
