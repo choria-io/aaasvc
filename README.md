@@ -242,6 +242,38 @@ $2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e
 }
 ```
 
+You can also keep the users list outside of this file in which case it will be reread when `mtime` changes.
+
+```json
+{
+  "authenticator": "userlist",
+  "userlist_authenticator": {
+    "signing_key": "/etc/choria/signer/signing_key.pem",
+    "validity": "1h",
+    "users_file": "/etc/choria/signer/users.json"
+  }
+}
+```
+
+Where `users.json` would have:
+
+```json
+[
+  {
+    "username": "puppetadmin",
+    "password": "$2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e",
+    "acls": [
+      "puppet.*",
+    ]
+  },
+  {
+    "username": "admin",
+    "password": ".....",
+    "opa_policy_file": "/etc/choria/signer/common.rego"
+  }
+]
+```
+
 #### Okta
 
 [Okta](https://www.okta.com/) is an identity cloud providing users, authentication and group membership as a service.  They have a great free tier suitable for many small sites and so is a good first step towards moving your users to a managed service.
