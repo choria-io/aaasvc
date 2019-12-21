@@ -7,8 +7,11 @@ package userlist
 
 import (
 	"crypto/rsa"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
@@ -22,17 +25,20 @@ import (
 
 // AuthenticatorConfig configures the user/pass authenticator
 type AuthenticatorConfig struct {
-	Users         []*User
-	TokenValidity string `json:"validity"`
-	SigningKey    string `json:"signing_key"`
+	Users         []*User `json:"users"`
+	UsersFile     string  `json:"users_file"`
+	TokenValidity string  `json:"validity"`
+	SigningKey    string  `json:"signing_key"`
 }
 
 // Authenticator is a authenticator with a basic fixed list of users and bcrypt encrypted passwords
 type Authenticator struct {
-	c        *AuthenticatorConfig
-	validity time.Duration
-	log      *logrus.Entry
-	site     string
+	c             *AuthenticatorConfig
+	validity      time.Duration
+	log           *logrus.Entry
+	site          string
+	userFileMtime time.Time
+	sync.Mutex
 }
 
 // New creates an instance of the authenticator
@@ -69,14 +75,20 @@ func (a *Authenticator) Login(req *models.LoginRequest) (resp *models.LoginRespo
 func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.LoginResponse) {
 	resp = &models.LoginResponse{}
 
-	user := a.getUser(req.Username)
+	user, err := a.getUser(req.Username)
+	if err != nil {
+		a.log.Warnf("Login failed for user %s due to a failure while retrieving the user: %s", req.Username, err)
+		resp.Error = "Login failed"
+		return
+	}
+
 	if user == nil {
 		a.log.Warnf("Login failed for unknown user %s", req.Username)
 		resp.Error = "Login failed"
 		return
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
 		a.log.Warnf("Login failed for user %s due to incorrect password", req.Username)
 		resp.Error = "Login failed"
@@ -132,14 +144,47 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 
 }
 
-func (a *Authenticator) getUser(u string) *User {
+func (a *Authenticator) reloadUserFile() (read bool, err error) {
+	if a.c.UsersFile == "" {
+		return false, nil
+	}
+
+	stat, err := os.Stat(a.c.UsersFile)
+	if err != nil {
+		return false, err
+	}
+
+	if !a.userFileMtime.Before(stat.ModTime()) {
+		return false, nil
+	}
+
+	a.userFileMtime = stat.ModTime()
+
+	uf, err := ioutil.ReadFile(a.c.UsersFile)
+	if err != nil {
+		return false, err
+	}
+
+	err = json.Unmarshal(uf, &a.c.Users)
+	return true, err
+}
+
+func (a *Authenticator) getUser(u string) (usr *User, err error) {
+	a.Lock()
+	defer a.Unlock()
+
+	_, err = a.reloadUserFile()
+	if err != nil {
+		return nil, err
+	}
+
 	for _, user := range a.c.Users {
 		if user.Username == u {
-			return user
+			return user, nil
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (a *Authenticator) signKey() (*rsa.PrivateKey, error) {

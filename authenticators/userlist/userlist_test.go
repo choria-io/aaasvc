@@ -3,12 +3,14 @@ package userlist
 import (
 	"crypto/rsa"
 	"io/ioutil"
+	"os"
 	"testing"
+	"time"
 
+	"github.com/choria-io/aaasvc/api/gen/models"
 	jwt "github.com/dgrijalva/jwt-go"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/sirupsen/logrus"
 )
 
@@ -32,11 +34,11 @@ var _ = Describe("Authenticators/Userlist", func() {
 			TokenValidity: "1h",
 			Users: []*User{
 				&User{
-					Username: "bob",
-					Password: "$2a$06$chB5d2pCKEzM6xlDoPvofuKW52piJ5f8fGvxHPTDaeSJOSNY76yai",
-					ACLs:     []string{"*"},
+					Username:      "bob",
+					Password:      "$2a$06$chB5d2pCKEzM6xlDoPvofuKW52piJ5f8fGvxHPTDaeSJOSNY76yai",
+					ACLs:          []string{"*"},
 					OPAPolicyFile: "testdata/test.rego",
-					Properties: map[string]string{"group":"admins"},
+					Properties:    map[string]string{"group": "admins"},
 				},
 			},
 		}
@@ -60,6 +62,49 @@ var _ = Describe("Authenticators/Userlist", func() {
 				TokenValidity: "1h",
 			}, log, "ginkgo")
 			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	Describe("reloadUserFile", func() {
+		It("Should handle no file specified", func() {
+			conf.UsersFile = ""
+			read, err := auth.reloadUserFile()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(read).To(BeFalse())
+		})
+
+		It("Should read a file and not reread it again if not needed", func() {
+			conf.UsersFile = "testdata/users.json"
+			read, err := auth.reloadUserFile()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(read).To(BeTrue())
+
+			Expect(auth.c.Users[0].Username).To(Equal("from_file"))
+
+			read, err = auth.reloadUserFile()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(read).To(BeFalse())
+		})
+
+		It("Should reread a file when needed", func() {
+			conf.UsersFile = "testdata/users.json"
+			read, err := auth.reloadUserFile()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(read).To(BeTrue())
+			Expect(auth.c.Users[0].Username).To(Equal("from_file"))
+
+			now := time.Now()
+			err = os.Chtimes("testdata/users.json", now, now)
+			Expect(err).ToNot(HaveOccurred())
+
+			read, err = auth.reloadUserFile()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(read).To(BeTrue())
+			Expect(auth.c.Users[0].Username).To(Equal("from_file"))
+
+			read, err = auth.reloadUserFile()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(read).To(BeFalse())
 		})
 	})
 
