@@ -1,0 +1,29 @@
+{
+    "choria_config": "/aaasvc/choria.conf",
+    "logfile": "/dev/stderr",
+    "loglevel": "warn",
+    "authenticator": "userlist",
+    "auditors": [
+        "logfile"
+    ],
+    "authorizer": "actionlist",
+    "signer": "basicjwt",
+    "port": 8080,
+    "monitor_port": 8081,
+    "site": "choria",
+    "tls_certificate": "/aaasvc/tls/cert.pem",
+    "tls_key": "/aaasvc/tls/key.pem",
+    "tls_ca": "/aaasvc/tls/ca.pem",
+    "basicjwt_signer": {
+        "signing_certificate": "/aaasvc/signer/pub.pem",
+        "max_validity": "2h"
+    },
+    "logfile_auditor": {
+        "logfile": "/dev/stderr"
+    },
+    "userlist_authenticator": {
+        "signing_key": "/aaasvc/signing/key.pem",
+        "validity": "1h",
+        "users_file": "/aaasvc/users.json"
+    }
+}

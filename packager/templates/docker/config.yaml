@@ -1,0 +1,6 @@
+required_properties:
+ - user
+ - name
+
+artifacts:
+ - /containers/*.tar

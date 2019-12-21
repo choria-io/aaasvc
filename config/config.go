@@ -205,52 +205,49 @@ func configureAuthenticator(conf *Config) error {
 }
 
 // NewAuditors configures the auditors to use based on config
-func newAuditors(conf *Config) error {
+func newAuditors(conf *Config) (err error) {
 	if conf.signer == nil {
 		return fmt.Errorf("signer has not been set")
 	}
 
 	for _, a := range conf.AuditorType {
+		var auditor auditors.Auditor
+
 		switch a {
 		case "logfile":
 			if conf.LogfileAuditor == nil {
 				return fmt.Errorf("logfile auditor enabled without a valid configuration")
 			}
 
-			auditor, err := logfile.New(conf.LogfileAuditor, conf.Site)
+			auditor, err = logfile.New(conf.LogfileAuditor, conf.Site)
 			if err != nil {
-				return errors.Wrapf(err, a)
+				return fmt.Errorf("logfile auditor failed: %w", err)
 			}
-
-			conf.audit = append(conf.audit, auditor)
-			conf.signer.SetAuditors(auditor)
 
 		case "natsstream":
 			if conf.NATSStreamAuditor == nil {
 				return fmt.Errorf("natstream auditor enabled without a valid configuration")
 			}
 
-			auditor, err := natsstream.New(conf.Choria(), conf.NATSStreamAuditor, conf.Site)
+			auditor, err = natsstream.New(conf.Choria(), conf.NATSStreamAuditor, conf.Site)
 			if err != nil {
-				return errors.Wrapf(err, a)
+				return fmt.Errorf("natsstream auditor failed: %w", err)
 			}
-
-			conf.audit = append(conf.audit, auditor)
-			conf.signer.SetAuditors(auditor)
 		case "jetstream":
 			if conf.JetStreamAuditor == nil {
 				return fmt.Errorf("jetstream auditor enabled without a valid configuration")
 			}
 
-			auditor, err := jetstream.New(conf.Choria(), conf.JetStreamAuditor, conf.Site)
+			auditor, err = jetstream.New(conf.Choria(), conf.JetStreamAuditor, conf.Site)
 			if err != nil {
-				return errors.Wrapf(err, a)
+				return fmt.Errorf("jetstream auditor failed: %w", err)
 			}
-
-			conf.audit = append(conf.audit, auditor)
-			conf.signer.SetAuditors(auditor)
 		}
+
+		conf.audit = append(conf.audit, auditor)
 	}
+
+	conf.signer.SetAuditors(conf.audit...)
 
 	return nil
 }
