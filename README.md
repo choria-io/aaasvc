@@ -101,11 +101,17 @@ The signer uses a JSON file for configuration and lets you compose the system as
         "password": "$2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e",
         "acls": [
           "puppet.*"
-        ]
+        ],
+        "properties": {
+          "group": "admins"
+        }
       },
       {
         "username": "admin",
         "password": ".....",
+        "properties": {
+          "group": "admins"
+        },
         "opa_policy_file": "/etc/choria/signer/common.rego"
       }
     ]
