@@ -18,6 +18,12 @@ foss:
       etcdir: /etc/aaasvc
       release: 1
 
+    docker:
+      user: choria
+      template: docker
+      target_arch: x86_64
+      binary: 64bit_linux
+
     el6_64:
       dist: el6
       template: el/el6

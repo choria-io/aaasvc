@@ -23,14 +23,14 @@ task :build do
 
   packages.each do |pkg|
     if pkg =~ /^(.+?)_(.+)$/
-      builder = "choria/packager:%s-go1.10" % $1
+      builder = "choria/packager:%s-go1.13" % $1
     elsif pkg == "puppet"
-      builder = "choria/packager:el7-go1.10-puppet"
+      builder = "choria/packager:el7-go1.13-puppet"
     else
-      builder = "choria/packager:el7-go1.10"
+      builder = "choria/packager:el7-go1.13"
     end
 
-    sh 'docker run --rm -v `pwd`:%s -e SOURCE_DIR=%s -e ARTIFACTS=%s -e SHA1="%s" -e BUILD="%s" -e VERSION="%s" -e PACKAGE=%s %s' % [
+    sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:%s -e SOURCE_DIR=%s -e ARTIFACTS=%s -e SHA1="%s" -e BUILD="%s" -e VERSION="%s" -e PACKAGE=%s %s' % [
       source,
       source,
       source,
@@ -51,7 +51,7 @@ task :build_binaries do
 
   source = "/go/src/github.com/choria-io/aaasvc"
 
-  sh 'docker run --rm  -v `pwd`:%s -e SOURCE_DIR=%s -e ARTIFACTS=%s -e SHA1="%s" -e BUILD="%s" -e VERSION="%s" -e BINARY_ONLY=1 choria/packager:el7-go9.2' % [
+  sh 'docker run --rm  -v `pwd`:%s -e SOURCE_DIR=%s -e ARTIFACTS=%s -e SHA1="%s" -e BUILD="%s" -e VERSION="%s" -e BINARY_ONLY=1 choria/packager:el7-go13' % [
     source,
     source,
     source,

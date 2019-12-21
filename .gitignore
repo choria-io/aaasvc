@@ -5,3 +5,4 @@ aaasvc
 .DS_Store
 *.rpm
 aaasvc-*linux*
+*.tar
