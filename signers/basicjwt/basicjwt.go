@@ -168,7 +168,10 @@ func (s *BasicJWT) logAndSetErr(resp *models.SignResponse, msg string, err error
 
 func (s *BasicJWT) auditRequest(action auditors.Action, request protocol.Request) {
 	for _, a := range s.audit {
-		a.Audit(action, request.CallerID(), request)
+		err := a.Audit(action, request.CallerID(), request)
+		if err != nil {
+			s.log.Errorf("Auditing failed: %s", err)
+		}
 	}
 }
 
