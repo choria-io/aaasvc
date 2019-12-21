@@ -36,6 +36,7 @@ var _ = Describe("Authenticators/Userlist", func() {
 					Password: "$2a$06$chB5d2pCKEzM6xlDoPvofuKW52piJ5f8fGvxHPTDaeSJOSNY76yai",
 					ACLs:     []string{"*"},
 					OPAPolicyFile: "testdata/test.rego",
+					Properties: map[string]string{"group":"admins"},
 				},
 			},
 		}
@@ -105,6 +106,12 @@ var _ = Describe("Authenticators/Userlist", func() {
 			policy, ok := claims["opa_policy"].(string)
 			Expect(ok).To(BeTrue())
 			Expect(policy).To(Equal(readFixture("testdata/test.rego")))
+
+			props, ok := claims["user_properties"].(map[string]interface{})
+			Expect(ok).To(BeTrue())
+			group, ok := props["group"].(string)
+			Expect(ok).To(BeTrue())
+			Expect(group).To(Equal("admins"))
 		})
 	})
 })

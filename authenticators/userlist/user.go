@@ -22,6 +22,10 @@ type User struct {
 	// OPAPolicyFile is the path to a rego file to embed as the policy for this user
 	OPAPolicyFile string `json:"opa_policy_file"`
 
+	// Properties are free form additional information to add about a user, this can be
+	// referenced later in an authorizer like the Open Policy one
+	Properties map[string]string `json:"properties"`
+
 	sync.Mutex
 }
 

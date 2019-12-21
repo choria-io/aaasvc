@@ -100,6 +100,10 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 		return
 	}
 
+	if len(user.Properties) > 0 {
+		claims["user_properties"] = user.Properties
+	}
+
 	if policy != "" {
 		claims["opa_policy"] = policy
 	}
