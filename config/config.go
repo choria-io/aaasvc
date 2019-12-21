@@ -13,6 +13,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 
+	"github.com/choria-io/aaasvc/auditors/jetstream"
 	"github.com/choria-io/aaasvc/auditors/logfile"
 	"github.com/choria-io/aaasvc/auditors/natsstream"
 	"github.com/choria-io/aaasvc/authorizers/actionlist"
@@ -45,7 +46,8 @@ type Config struct {
 	// AuditorType is the types of auditor to use, multiple will be called concurrently
 	//
 	// * logfile - logs audit messages to a file, requires LogfileAuditor config
-	// * natsstream - publish audit messages to a NATS stream
+	// * natsstream - publish audit messages to a NATS Stream
+	// * jetstream - publish audit messages to a NATS JetStream topic
 	AuditorType []string `json:"auditors"`
 
 	// AuthorizerType is the type of authorizer to use
@@ -76,6 +78,9 @@ type Config struct {
 
 	// NATSStreamAuditor is configuration for the `natsstream` AuditorType
 	NATSStreamAuditor *natsstream.AuditorConfig `json:"natsstream_auditor"`
+
+	// JetStreamAuditor is configuration for the `jetstream` AuditorType
+	JetStreamAuditor *jetstream.AuditorConfig `json:"jetstream_auditor"`
 
 	// OktaAuthenticator is configuration for the `okta` AuthorizerType
 	OktaAuthenticator *okta.AuthenticatorConfig `json:"okta_authenticator"`
@@ -226,6 +231,18 @@ func newAuditors(conf *Config) error {
 			}
 
 			auditor, err := natsstream.New(conf.Choria(), conf.NATSStreamAuditor, conf.Site)
+			if err != nil {
+				return errors.Wrapf(err, a)
+			}
+
+			conf.audit = append(conf.audit, auditor)
+			conf.signer.SetAuditors(auditor)
+		case "jetstream":
+			if conf.JetStreamAuditor == nil {
+				return fmt.Errorf("jetstream auditor enabled without a valid configuration")
+			}
+
+			auditor, err := jetstream.New(conf.Choria(), conf.JetStreamAuditor, conf.Site)
 			if err != nil {
 				return errors.Wrapf(err, a)
 			}

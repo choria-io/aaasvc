@@ -1,4 +1,4 @@
-package natsstream
+package jetstream
 
 import (
 	"encoding/json"
@@ -8,20 +8,20 @@ import (
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/auditors/notification"
 
-	"github.com/choria-io/go-protocol/protocol/v1"
+	v1 "github.com/choria-io/go-protocol/protocol/v1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 func TestWithGinkgo(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Auditors/NATSStream")
+	RunSpecs(t, "Auditors/JetStream")
 }
 
-var _ = Describe("Auditors/NATSStream", func() {
+var _ = Describe("Auditors/JetStream", func() {
 	Describe("Audit", func() {
 		It("Should publish valid audit messages", func() {
-			auditor := &NatsStream{
+			auditor := &JetStream{
 				outbox: make(chan interface{}, 1000),
 				site:   "GINKGO",
 			}
