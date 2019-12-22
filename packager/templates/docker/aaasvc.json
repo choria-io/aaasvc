@@ -1,7 +1,7 @@
 {
     "choria_config": "/{{cpkg_name}}/choria.conf",
     "logfile": "/dev/stderr",
-    "loglevel": "warn",
+    "loglevel": "info",
     "authenticator": "userlist",
     "auditors": [
         "logfile"
