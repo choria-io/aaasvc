@@ -23,7 +23,7 @@
     },
     "userlist_authenticator": {
         "signing_key": "/{{cpkg_name}}/signing/key.pem",
-        "users_file": "/{{cpkg_name}}/users.json",
+        "users_file": "/{{cpkg_name}}/users/users.json",
         "validity": "1h"
     }
 }
