@@ -1,5 +1,5 @@
 {
-    "choria_config": "/aaasvc/choria.conf",
+    "choria_config": "/{{cpkg_name}}/choria.conf",
     "logfile": "/dev/stderr",
     "loglevel": "warn",
     "authenticator": "userlist",
@@ -11,19 +11,19 @@
     "port": 8080,
     "monitor_port": 8081,
     "site": "choria",
-    "tls_certificate": "/aaasvc/tls/cert.pem",
-    "tls_key": "/aaasvc/tls/key.pem",
-    "tls_ca": "/aaasvc/tls/ca.pem",
+    "tls_certificate": "/{{cpkg_name}}/tls/cert.pem",
+    "tls_key": "/{{cpkg_name}}/tls/key.pem",
+    "tls_ca": "/{{cpkg_name}}/tls/ca.pem",
     "basicjwt_signer": {
-        "signing_certificate": "/aaasvc/signer/pub.pem",
+        "signing_certificate": "/{{cpkg_name}}/signer/pub.pem",
         "max_validity": "2h"
     },
     "logfile_auditor": {
         "logfile": "/dev/stderr"
     },
     "userlist_authenticator": {
-        "signing_key": "/aaasvc/signing/key.pem",
-        "validity": "1h",
-        "users_file": "/aaasvc/users.json"
+        "signing_key": "/{{cpkg_name}}/signing/key.pem",
+        "users_file": "/{{cpkg_name}}/users.json",
+        "validity": "1h"
     }
 }
