@@ -28,7 +28,7 @@ The token is valid for a configurable period after which time another `mco login
 
 This is under active development, see the Issues list for current outstanding items. Documentation and deployment details are sparse while it's being worked on, though its functional and we are happy to help you on our slack channel.
 
-[![DeepSource](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/choria-io/aaasvc/?ref=repository-badge)
+[![CodeFactor](https://www.codefactor.io/repository/github/choria-io/aaasvc/badge)](https://www.codefactor.io/repository/github/choria-io/aaasvc)
 
 ## Features
 
