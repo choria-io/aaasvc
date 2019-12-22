@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/12/22|      |Release 0.3.1                                                                                            |
+|2019/12/22|61    |Do not cache opa policies read from file                                                                 |
 |2019/12/22|      |Release 0.3.0                                                                                            |
 |2019/12/22|55    |Allow TLS to be disabled using `--disable-tls` for use in Kubernetes                                     |
 |2019/12/21|2     |Allow users to be set in a separate file that gets hot reloaded                                          |
