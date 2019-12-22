@@ -13,6 +13,7 @@ var (
 	cfile   string
 	err     error
 	pidfile string
+	notls   bool
 
 	runcmd   *kingpin.CmdClause
 	cryptcmd *kingpin.CmdClause
@@ -28,6 +29,7 @@ func Run() {
 	runcmd.Flag("config", "Configuration to use").Required().ExistingFileVar(&cfile)
 	runcmd.Flag("debug", "Enable debug logging").BoolVar(&debug)
 	runcmd.Flag("pid", "File to write running pid to").StringVar(&pidfile)
+	runcmd.Flag("disable-tls", "Disables TLS").Hidden().BoolVar(&notls)
 
 	command := kingpin.MustParse(app.Parse(os.Args[1:]))
 
