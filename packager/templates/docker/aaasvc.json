@@ -6,7 +6,7 @@
     "auditors": [
         "logfile"
     ],
-    "authorizer": "actionlist",
+    "authorizer": "opa",
     "signer": "basicjwt",
     "port": 8080,
     "monitor_port": 8081,
