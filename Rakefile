@@ -24,7 +24,7 @@ task :build do
   packages.each do |pkg|
     if pkg =~ /^(.+?)_(.+)$/
       builder = "choria/packager:%s-go1.13" % $1
-    elsif pkg == "puppet"
+    elsif ["puppet", "docker"].include?(pkg)
       builder = "choria/packager:el7-go1.13-puppet"
     else
       builder = "choria/packager:el7-go1.13"

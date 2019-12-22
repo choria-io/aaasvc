@@ -14,4 +14,4 @@ COPY dist/aaasvc.json "/{{cpkg_name}}/config.json"
 COPY dist/choria.conf "/{{cpkg_name}}/choria.conf"
 
 ENTRYPOINT "/{{cpkg_name}}-server"
-CMD ["run", "--config", "/{{cpkg_name}}/config.json"]
+CMD ["run", "--config=/{{cpkg_name}}/config.json"]
