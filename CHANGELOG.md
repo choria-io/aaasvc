@@ -1,5 +1,11 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2019/12/22|      |Release 0.3.0                                                                                            |
+|2019/12/22|55    |Allow TLS to be disabled using `--disable-tls` for use in Kubernetes                                     |
+|2019/12/21|2     |Allow users to be set in a separate file that gets hot reloaded                                          |
+|2019/12/21|50    |Support NATS JetStream for auditing                                                                      |
+|2019/12/21|48    |Support user properties                                                                                  |
+|2019/12/19|42    |Support Open Policy Agent                                                                                |
 |2019/04/19|      |Release 0.2.0                                                                                            |
 |2019/04/19|34    |Run as the root user on el7 as well                                                                      |
 |2019/02/15|      |Release 0.1.0                                                                                            |
