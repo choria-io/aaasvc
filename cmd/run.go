@@ -56,17 +56,22 @@ func serve(conf *config.Config) error {
 	server := restapi.NewServer(api)
 	defer server.Shutdown()
 
-	if conf.TLSCertificate == "" || conf.TLSKey == "" || conf.TLSCA == "" {
-		return fmt.Errorf("TLS settings are not set")
+	server.Port = conf.Port
+	server.EnabledListeners = []string{"http"}
+
+	if !notls {
+		if conf.TLSCertificate == "" || conf.TLSKey == "" || conf.TLSCA == "" {
+			return fmt.Errorf("TLS settings are not set")
+		}
+
+		server.TLSCertificate = flags.Filename(conf.TLSCertificate)
+		server.TLSCertificateKey = flags.Filename(conf.TLSKey)
+		server.TLSCACertificate = flags.Filename(conf.TLSCA)
+
+		server.TLSPort = conf.Port
+		server.Port = 0
+		server.EnabledListeners = []string{"https"}
 	}
-
-	server.TLSCertificate = flags.Filename(conf.TLSCertificate)
-	server.TLSCertificateKey = flags.Filename(conf.TLSKey)
-	server.TLSCACertificate = flags.Filename(conf.TLSCA)
-
-	server.TLSPort = conf.Port
-	server.Port = 0
-	server.EnabledListeners = []string{"https"}
 
 	if conf.SignerType != "" {
 		api.PostSignHandler = operations.PostSignHandlerFunc(signers.SignHandler)
