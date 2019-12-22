@@ -100,6 +100,10 @@ func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allo
 		return false, req.Agent(), fmt.Errorf("'opa_policy' claim is not a string")
 	}
 
+	if policy == "" {
+		return false, req.Agent(), fmt.Errorf("'opa_policy' claim is an empty string, denying request")
+	}
+
 	allowed, err = a.evaluatePolicy(rpcreq, policy, claims)
 	if err != nil {
 		return false, req.Agent(), fmt.Errorf("OPA policy evaluation failed: %s", err)

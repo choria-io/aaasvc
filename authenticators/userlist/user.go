@@ -47,7 +47,5 @@ func (u *User) OpenPolicy() (policy string, err error) {
 		return "", err
 	}
 
-	u.OPAPolicy = string(out)
-
-	return u.OPAPolicy, nil
+	return string(out), nil
 }
