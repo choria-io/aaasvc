@@ -67,6 +67,8 @@ Additionally you need:
 
 There is a Puppet module [exaldraen-choria_aaasvc](https://forge.puppet.com/exaldraen/choria_aaasvc) which will automate the installation and configuration of the AAA service, but currently still requires you to provision the certificates manually.
 
+Packages for Enterprise Linux can be found on our [Packagecloud](https://packagecloud.io/choria/release) and we have a Docker container that can be used to host the service in Kubernetes at [choria/aaasvc](https://hub.docker.com/r/choria/aaasvc).
+
 ### Signer Configuration
 
 The signer uses a JSON file for configuration and lets you compose the system as you need it, below is a basic example:
