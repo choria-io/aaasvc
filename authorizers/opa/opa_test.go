@@ -28,7 +28,8 @@ var _ = Describe("Authorizers/OPA", func() {
 
 	BeforeEach(func() {
 		logger := logrus.New()
-		// logger.Out = ioutil.Discard
+		logger.Out = GinkgoWriter
+		logger.SetLevel(logrus.DebugLevel)
 		log = logrus.NewEntry(logger)
 		auth = &Authorizer{log: log, site: "ginkgo"}
 
