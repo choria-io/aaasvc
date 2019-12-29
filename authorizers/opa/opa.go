@@ -37,6 +37,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/types"
 	"github.com/sirupsen/logrus"
 )
@@ -129,6 +130,7 @@ func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claim
 		return false, fmt.Errorf("could not parse data embedded in request: %v", err)
 	}
 
+	buf := topdown.NewBufferTracer()
 	opts := []func(r *rego.Rego){
 		rego.Query("data.choria.aaa.policy.allow"),
 		rego.Module("choria.rego", policy),
@@ -136,7 +138,16 @@ func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claim
 	}
 	opts = append(opts, a.regoFunctionsMap(rpcreq)...)
 
+	if a.log.Logger.GetLevel() == logrus.DebugLevel {
+		opts = append(opts, rego.Tracer(buf))
+	}
+
+	a.log.Infof("Evaluating rego policy found in JWT claim for request %s", rpcreq.RequestID)
+
 	rs, err := rego.New(opts...).Eval(context.Background())
+	if a.log.Logger.GetLevel() == logrus.DebugLevel {
+		topdown.PrettyTrace(a.log.Writer(), *buf)
+	}
 	if err != nil {
 		return false, fmt.Errorf("could not evaluate rego policy: %v", err)
 	}

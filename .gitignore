@@ -6,3 +6,4 @@ aaasvc
 *.rpm
 aaasvc-*linux*
 *.tar
+.idea
