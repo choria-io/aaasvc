@@ -6,8 +6,9 @@ require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/choria-io/go-choria v0.13.0
 	github.com/choria-io/go-client v0.5.2
-	github.com/choria-io/go-config v0.0.5
+	github.com/choria-io/go-config v0.0.6-0.20191214141246-32872409688e
 	github.com/choria-io/go-protocol v1.3.2
+	github.com/choria-io/go-security v0.5.1-0.20200101220703-13f769ce5a70
 	github.com/choria-io/go-srvcache v0.0.6
 	github.com/choria-io/mcorpc-agent-provider v0.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible

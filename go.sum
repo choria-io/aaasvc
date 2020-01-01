@@ -104,6 +104,8 @@ github.com/choria-io/go-config v0.0.4-0.20190914115046-53ac9c8e4c1d/go.mod h1:y2
 github.com/choria-io/go-config v0.0.4/go.mod h1:y2mXxXQ865arJG3WxqQZD2or9cS3wAFD5r/krm9dYN4=
 github.com/choria-io/go-config v0.0.5 h1:/jKkMtbLf6nl9hPr0A/axaTrCpPUcRwEv65/+OdzqAk=
 github.com/choria-io/go-config v0.0.5/go.mod h1:y2mXxXQ865arJG3WxqQZD2or9cS3wAFD5r/krm9dYN4=
+github.com/choria-io/go-config v0.0.6-0.20191214141246-32872409688e h1:pHV3k6Sy0q9UDJQmukSwEdy6zivVUoHwB9rHMiBM+yA=
+github.com/choria-io/go-config v0.0.6-0.20191214141246-32872409688e/go.mod h1:y2mXxXQ865arJG3WxqQZD2or9cS3wAFD5r/krm9dYN4=
 github.com/choria-io/go-confkey v1.2.0/go.mod h1:ojIUK4p2mX/ZSKuSG5hgU/p7Db+EIX8il4yjQweZtiU=
 github.com/choria-io/go-confkey v1.3.0 h1:KlqctKfo843I2Uas2vLFOzScyjSMyKFUsSf/FdMRuQI=
 github.com/choria-io/go-confkey v1.3.0/go.mod h1:ojIUK4p2mX/ZSKuSG5hgU/p7Db+EIX8il4yjQweZtiU=
@@ -128,6 +130,8 @@ github.com/choria-io/go-security v0.4.3/go.mod h1:/ySJXakfkaYr+usclcJIuyu01QO9TJ
 github.com/choria-io/go-security v0.4.4-0.20190625121144-69559b68756a/go.mod h1:240Ng1Hba8E3fevkhGIgb9n6UeO9LHGdbdN2slpNP38=
 github.com/choria-io/go-security v0.5.0 h1:b149GbAHyn+VdNPwHxAUC1MVWBNFQdhPoMTlq37UVx0=
 github.com/choria-io/go-security v0.5.0/go.mod h1:j1cMUDhxAgJchCa6iAHAXw6H7jkxY1Az5wg7M2DQ3J8=
+github.com/choria-io/go-security v0.5.1-0.20200101220703-13f769ce5a70 h1:eSTA27vk1VMZZJfSycWeoR9yrPG1zPf5hLn8YnRT3Xg=
+github.com/choria-io/go-security v0.5.1-0.20200101220703-13f769ce5a70/go.mod h1:j0RBGOPqnAeNmOhRJ2EdkhXvsZrDHdFAvBcFhq5BFXM=
 github.com/choria-io/go-srvcache v0.0.1/go.mod h1:yikJnY5uDvA5/NV0V5Ipv2SbFBneU0bKB6JcMSqktdg=
 github.com/choria-io/go-srvcache v0.0.2/go.mod h1:yikJnY5uDvA5/NV0V5Ipv2SbFBneU0bKB6JcMSqktdg=
 github.com/choria-io/go-srvcache v0.0.6-0.20190626100940-2661e30c5679/go.mod h1:1eOKVaRziNIPfgRe8koxDikrQOxlsl/vI5DdOBROszk=
@@ -390,6 +394,8 @@ github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b h1:j7+1HpAFS1zy5+Q4qx1f
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
 github.com/miekg/pkcs11 v1.0.2 h1:CIBkOawOtzJNE0B+EpRiUBzuVW7JEQAwdwhSS6YhIeg=
 github.com/miekg/pkcs11 v1.0.2/go.mod h1:XsNlhZGX73bx86s2hdc/FuaLm2CPZJemRLMA+WTFxgs=
+github.com/miekg/pkcs11 v1.0.3 h1:iMwmD7I5225wv84WxIG/bmxz9AXjWvTWIbM/TYHvWtw=
+github.com/miekg/pkcs11 v1.0.3/go.mod h1:XsNlhZGX73bx86s2hdc/FuaLm2CPZJemRLMA+WTFxgs=
 github.com/mitchellh/go-homedir v1.0.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=

@@ -354,7 +354,7 @@ Here's a complex policy:
 
 ```rego
 # must be in this package
-package choria.aaa.policy
+package io.choria.aaasvc
 
 # it only checks `allow`, its good to default false
 default allow = false

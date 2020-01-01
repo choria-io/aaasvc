@@ -29,7 +29,6 @@ var _ = Describe("Authorizers/OPA", func() {
 	BeforeEach(func() {
 		logger := logrus.New()
 		logger.Out = GinkgoWriter
-		logger.SetLevel(logrus.DebugLevel)
 		log = logrus.NewEntry(logger)
 		auth = &Authorizer{log: log, site: "ginkgo"}
 
@@ -52,6 +51,7 @@ var _ = Describe("Authorizers/OPA", func() {
 
 		for r := 1; r <= 5; r++ {
 			policy := readFixture(fmt.Sprintf("testdata/scenario%d.rego", r))
+			fmt.Println(fmt.Sprintf("testdata/scenario%d.rego", r))
 			claims = jwt.MapClaims(map[string]interface{}{
 				"opa_policy": policy,
 				"callerid": "up=bob",
