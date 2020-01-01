@@ -30,16 +30,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/choria-io/aaasvc/authorizers"
 	"github.com/choria-io/go-client/client"
 	"github.com/choria-io/go-protocol/protocol"
+	"github.com/choria-io/go-security/opa"
 	"github.com/choria-io/mcorpc-agent-provider/mcorpc"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/types"
 	"github.com/sirupsen/logrus"
+
+	"github.com/choria-io/aaasvc/authorizers"
 )
 
 // Authorizer authorizes requests based on Open Policy Agent policies
@@ -130,35 +131,25 @@ func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claim
 		return false, fmt.Errorf("could not parse data embedded in request: %v", err)
 	}
 
-	buf := topdown.NewBufferTracer()
-	opts := []func(r *rego.Rego){
-		rego.Query("data.choria.aaa.policy.allow"),
-		rego.Module("choria.rego", policy),
-		rego.Input(a.regoInputs(rpcreq, data, claims)),
+	eopts := []opa.Option{
+		opa.Logger(a.log),
+		opa.Policy([]byte(policy)),
+		opa.Function(a.regoFunctionsMap(rpcreq)...),
 	}
-	opts = append(opts, a.regoFunctionsMap(rpcreq)...)
 
 	if a.log.Logger.GetLevel() == logrus.DebugLevel {
-		opts = append(opts, rego.Tracer(buf))
+		eopts = append(eopts, opa.Trace())
+	}
+
+	evaluator, err := opa.New("io.choria.aaasvc", "data.io.choria.aaasvc.allow", eopts...)
+	if err != nil {
+		return false, fmt.Errorf("could not initialize opa evaluator for request %s: %v", rpcreq.RequestID, err)
 	}
 
 	a.log.Infof("Evaluating rego policy found in JWT claim for request %s", rpcreq.RequestID)
-
-	rs, err := rego.New(opts...).Eval(context.Background())
-	if a.log.Logger.GetLevel() == logrus.DebugLevel {
-		topdown.PrettyTrace(a.log.Writer(), *buf)
-	}
+	allowed, err = evaluator.Evaluate(context.Background(), a.regoInputs(rpcreq, data, claims))
 	if err != nil {
-		return false, fmt.Errorf("could not evaluate rego policy: %v", err)
-	}
-
-	if len(rs) != 1 {
-		return false, fmt.Errorf("invalid result from rego policy: expected 1 received %d", len(rs))
-	}
-
-	allowed, ok := rs[0].Expressions[0].Value.(bool)
-	if !ok {
-		return false, fmt.Errorf("did not receive a boolean for 'allow' from rego evaluation")
+		return false, fmt.Errorf("could not evaluate policy for request %s: %s", rpcreq.RequestID, err)
 	}
 
 	return allowed, nil

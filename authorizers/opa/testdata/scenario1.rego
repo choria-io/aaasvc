@@ -1,4 +1,4 @@
-package choria.aaa.policy
+package io.choria.aaasvc
 
 default allow = false
 
