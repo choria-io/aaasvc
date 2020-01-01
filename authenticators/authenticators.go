@@ -3,9 +3,9 @@ package authenticators
 import (
 	"sync"
 
-	"github.com/go-openapi/runtime/middleware"
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/api/gen/restapi/operations"
+	"github.com/go-openapi/runtime/middleware"
 )
 
 var authenticator Authenticator

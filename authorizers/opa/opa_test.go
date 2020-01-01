@@ -54,7 +54,7 @@ var _ = Describe("Authorizers/OPA", func() {
 			fmt.Println(fmt.Sprintf("testdata/scenario%d.rego", r))
 			claims = jwt.MapClaims(map[string]interface{}{
 				"opa_policy": policy,
-				"callerid": "up=bob",
+				"callerid":   "up=bob",
 			})
 
 			allowed, err := auth.evaluatePolicy(req, policy, claims)
@@ -67,7 +67,7 @@ var _ = Describe("Authorizers/OPA", func() {
 		policy := readFixture("testdata/scenario5.rego")
 		claims = jwt.MapClaims(map[string]interface{}{
 			"opa_policy": policy,
-			"callerid": "up=bob",
+			"callerid":   "up=bob",
 		})
 
 		req.Filter.AddClassFilter("apache")
