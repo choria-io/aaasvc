@@ -8,15 +8,15 @@ import (
 	"testing"
 	"time"
 
-	protocol "github.com/choria-io/go-protocol/protocol"
-	"github.com/choria-io/go-protocol/protocol/v1"
+	protocol "github.com/choria-io/go-choria/protocol"
+	"github.com/choria-io/go-choria/protocol/v1"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
 	auditors "github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/go-choria/choria"
 	gomock "github.com/golang/mock/gomock"
 
-	cconf "github.com/choria-io/go-config"
+	cconf "github.com/choria-io/go-choria/config"
 	jwt "github.com/dgrijalva/jwt-go"
 
 	. "github.com/onsi/ginkgo"

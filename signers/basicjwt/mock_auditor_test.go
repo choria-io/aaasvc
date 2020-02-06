@@ -6,7 +6,7 @@ package basicjwt
 
 import (
 	auditors "github.com/choria-io/aaasvc/auditors"
-	protocol "github.com/choria-io/go-protocol/protocol"
+	protocol "github.com/choria-io/go-choria/protocol"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

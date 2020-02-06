@@ -1,5 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2010/01/06|      |Release 0.3.2                                         
+|2020/01/01|68    |Use common component for managing Rego evaluation                                                        |
+|2019/12/29|66    |Support tracing Rego evaluation when in debug mode                                                       |
 |2019/12/22|      |Release 0.3.1                                                                                            |
 |2019/12/22|61    |Do not cache opa policies read from file                                                                 |
 |2019/12/22|      |Release 0.3.0                                                                                            |

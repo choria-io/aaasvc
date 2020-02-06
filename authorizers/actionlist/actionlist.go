@@ -24,8 +24,8 @@ import (
 	"strings"
 
 	"github.com/choria-io/aaasvc/authorizers"
-	"github.com/choria-io/go-protocol/protocol"
-	"github.com/choria-io/mcorpc-agent-provider/mcorpc"
+	"github.com/choria-io/go-choria/protocol"
+	"github.com/choria-io/go-choria/providers/agent/mcorpc"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 )

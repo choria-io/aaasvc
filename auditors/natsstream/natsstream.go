@@ -12,8 +12,8 @@ import (
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/auditors/notification"
-	"github.com/choria-io/go-protocol/protocol"
-	"github.com/choria-io/go-srvcache"
+	"github.com/choria-io/go-choria/protocol"
+	"github.com/choria-io/go-choria/srvcache"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 

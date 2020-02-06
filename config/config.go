@@ -23,7 +23,7 @@ import (
 
 	"github.com/choria-io/aaasvc/signers/basicjwt"
 	"github.com/choria-io/go-choria/choria"
-	cconf "github.com/choria-io/go-config"
+	cconf "github.com/choria-io/go-choria/config"
 )
 
 // Config configures the signing service
