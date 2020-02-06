@@ -1,7 +1,7 @@
 package authorizers
 
 import (
-	"github.com/choria-io/go-protocol/protocol"
+	"github.com/choria-io/go-choria/protocol"
 	jwt "github.com/dgrijalva/jwt-go"
 )
 

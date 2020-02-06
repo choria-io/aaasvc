@@ -1,7 +1,7 @@
 package auditors
 
 import (
-	"github.com/choria-io/go-protocol/protocol"
+	"github.com/choria-io/go-choria/protocol"
 )
 
 // Action is the action taken by the authorizer on a specific message

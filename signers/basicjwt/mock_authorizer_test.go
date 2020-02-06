@@ -5,7 +5,7 @@
 package basicjwt
 
 import (
-	protocol "github.com/choria-io/go-protocol/protocol"
+	protocol "github.com/choria-io/go-choria/protocol"
 	jwt_go "github.com/dgrijalva/jwt-go"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"

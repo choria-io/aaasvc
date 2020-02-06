@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/choria-io/aaasvc/auditors"
-	"github.com/choria-io/go-protocol/protocol"
+	"github.com/choria-io/go-choria/protocol"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

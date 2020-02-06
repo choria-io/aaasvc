@@ -6,7 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/choria-io/go-protocol/protocol/v1"
+	"github.com/choria-io/go-choria/protocol/v1"
 	jwt "github.com/dgrijalva/jwt-go"
 
 	. "github.com/onsi/ginkgo"
