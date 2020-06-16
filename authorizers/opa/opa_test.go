@@ -51,7 +51,6 @@ var _ = Describe("Authorizers/OPA", func() {
 
 		for r := 1; r <= 5; r++ {
 			policy := readFixture(fmt.Sprintf("testdata/scenario%d.rego", r))
-			fmt.Println(fmt.Sprintf("testdata/scenario%d.rego", r))
 			claims = jwt.MapClaims(map[string]interface{}{
 				"opa_policy": policy,
 				"callerid":   "up=bob",

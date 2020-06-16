@@ -114,7 +114,7 @@ func (ns *NatsStream) connect() (err error) {
 			}))
 			if err != nil {
 				ns.log.Errorf("Could not create initial STAN connection, retrying: %s", err)
-				backoff.FiveSec.InterruptableSleep(ctx, ctr) // skipcq: GSC-G104
+				backoff.FiveSec.TrySleep(ctx, ctr)
 
 				continue
 			}
@@ -150,7 +150,7 @@ func (ns *NatsStream) connect() (err error) {
 
 				ns.log.WithField("attempt", ctr).Infof("Attempting to reconnect NATS Stream after reconnection")
 
-				backoff.FiveSec.InterruptableSleep(ctx, ctr) // skipcq: GSC-G104
+				backoff.FiveSec.TrySleep(ctx, ctr)
 
 				err := start()
 				if err != nil {

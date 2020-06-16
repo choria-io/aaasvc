@@ -1,6 +1,8 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
-|2010/01/06|      |Release 0.3.2                                         
+|2020/06/16|      |Release 0.3.3                                                                                            |
+|2020/06/16|      |Update dependencies for `certmanager` support                                                            |
+|2020/01/06|      |Release 0.3.2                                                                                            |
 |2020/01/01|68    |Use common component for managing Rego evaluation                                                        |
 |2019/12/29|66    |Support tracing Rego evaluation when in debug mode                                                       |
 |2019/12/22|      |Release 0.3.1                                                                                            |
