@@ -112,6 +112,9 @@ func validateAction(agent string, action string, claims jwt.MapClaims, log *logr
 		}
 
 		parts := strings.Split(claim, ".")
+		if len(parts) != 2 {
+			return false, fmt.Errorf("invalid agent claim found in token %s", claim)
+		}
 
 		// its a claim for a different agent so pass, no need to check it here
 		if agent != parts[0] {
