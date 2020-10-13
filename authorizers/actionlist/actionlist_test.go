@@ -6,7 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/choria-io/go-choria/protocol/v1"
+	v1 "github.com/choria-io/go-choria/protocol/v1"
 	jwt "github.com/dgrijalva/jwt-go"
 
 	. "github.com/onsi/ginkgo"
@@ -43,7 +43,7 @@ var _ = Describe("Authorizers/Actionlist", func() {
 
 		It("Should fail disallowed requests", func() {
 			claims := jwt.MapClaims{
-				"agents": []interface{}{"nothing"},
+				"agents": []interface{}{"nothing.*"},
 			}
 
 			req, err := v1.NewRequest("rpcutil", "ginkgo.example.net", "choria=ginkgo", 60, "123454", "mcollective")
