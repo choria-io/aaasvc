@@ -78,6 +78,13 @@ jobs:
       BUILD: foss
       BUILDER: choria/packager:el7-go1.13
 
+  build_el8_64bit_rpms:
+    <<: *pkg_build
+    environment:
+      PACKAGE: el8_64
+      BUILD: foss
+      BUILDER: choria/packager:el8-go1.13
+
   gather_artifacts:
     docker:
       - image: circleci/golang:1.13
@@ -103,7 +110,7 @@ jobs:
       - run: gem install package_cloud
 
       - run: |
-          for d in 6 7
+          for d in 6 7 8
           do
             for i in $(find /tmp/workspace -name \*.el${d}.\*.rpm | grep -v src.rpm)
             do
@@ -135,10 +142,16 @@ workflows:
             - test
           filters: *semver_only
 
+      - build_el8_64bit_rpms:
+          requires:
+            - test
+          filters: *semver_only
+
       - gather_artifacts:
           requires:
             - build_el6_64bit_rpms
             - build_el7_64bit_rpms
+            - build_el8_64bit_rpms
           filters: *semver_only
 
       - release_hold:
