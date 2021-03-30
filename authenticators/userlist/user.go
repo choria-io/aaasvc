@@ -13,6 +13,9 @@ type User struct {
 	// Password is a bcrypted password
 	Password string `json:"password"`
 
+	// Organization is a org name the user belongs to
+	Organization string `json:"organization"`
+
 	// ACLs are for the action list authorizer
 	ACLs []string `json:"acls"`
 

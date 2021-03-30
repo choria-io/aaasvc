@@ -2,6 +2,7 @@ package okta
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/authenticators"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/okta/okta-sdk-golang/okta"
+	"github.com/okta/okta-sdk-golang/v2/okta"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -194,15 +195,17 @@ func (a *Authenticator) login(user string, password string) (resp *tokenResponse
 }
 
 func (a *Authenticator) userGroups(userid string) (groups []string, err error) {
-	config := okta.NewConfig().WithOrgUrl(a.c.EndPoint).WithToken(a.c.APIToken)
-	client := okta.NewClient(config, nil, nil)
+	ctx, client, err := okta.NewClient(context.Background(), okta.WithOrgUrl(a.c.EndPoint), okta.WithToken(a.c.APIToken))
+	if err != nil {
+		return nil, err
+	}
 
-	user, _, err := client.User.GetUser(userid, nil)
+	user, _, err := client.User.GetUser(ctx, userid)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not fetch user %s", userid)
 	}
 
-	ogroups, _, err := client.User.ListUserGroups(user.Id, nil)
+	ogroups, _, err := client.User.ListUserGroups(ctx, user.Id)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not fetch groups for user %s", userid)
 	}

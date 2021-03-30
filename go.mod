@@ -13,11 +13,10 @@ require (
 	github.com/go-openapi/strfmt v0.20.0
 	github.com/go-openapi/swag v0.19.14
 	github.com/go-openapi/validate v0.20.2
-	github.com/go-yaml/yaml v2.1.0+incompatible // indirect
 	github.com/golang/mock v1.5.0
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/nats-io/stan.go v0.8.3
-	github.com/okta/okta-sdk-golang v0.1.0
+	github.com/okta/okta-sdk-golang/v2 v2.3.0
 	github.com/onsi/ginkgo v1.15.2
 	github.com/onsi/gomega v1.11.0
 	github.com/open-policy-agent/opa v0.27.1
