@@ -88,7 +88,7 @@ type Server struct {
 	TLSHost           string         `long:"tls-host" description:"the IP to listen on for tls, when not specified it's the same as --host" env:"TLS_HOST"`
 	TLSPort           int            `long:"tls-port" description:"the port to listen on for secure connections, defaults to a random value" env:"TLS_PORT"`
 	TLSCertificate    flags.Filename `long:"tls-certificate" description:"the certificate to use for secure connections" env:"TLS_CERTIFICATE"`
-	TLSCertificateKey flags.Filename `long:"tls-key" description:"the private key to use for secure conections" env:"TLS_PRIVATE_KEY"`
+	TLSCertificateKey flags.Filename `long:"tls-key" description:"the private key to use for secure connections" env:"TLS_PRIVATE_KEY"`
 	TLSCACertificate  flags.Filename `long:"tls-ca" description:"the certificate authority file to be used with mutual tls auth" env:"TLS_CA_CERTIFICATE"`
 	TLSListenLimit    int            `long:"tls-listen-limit" description:"limit the number of outstanding requests"`
 	TLSKeepAlive      time.Duration  `long:"tls-keep-alive" description:"sets the TCP keep-alive timeouts on accepted connections. It prunes dead TCP connections ( e.g. closing laptop mid-download)"`
@@ -134,7 +134,6 @@ func (s *Server) SetAPI(api *operations.ChoriaCentralSigningServiceAPI) {
 	}
 
 	s.api = api
-	s.api.Logger = log.Printf
 	s.handler = configureAPI(api)
 }
 
@@ -175,8 +174,6 @@ func (s *Server) Serve() (err error) {
 	go handleInterrupt(once, s)
 
 	servers := []*http.Server{}
-	wg.Add(1)
-	go s.handleShutdown(wg, &servers)
 
 	if s.hasScheme(schemeUnix) {
 		domainSocket := new(http.Server)
@@ -253,7 +250,7 @@ func (s *Server) Serve() (err error) {
 			// https://github.com/golang/go/tree/master/src/crypto/elliptic
 			CurvePreferences: []tls.CurveID{tls.CurveP256},
 			// Use modern tls mode https://wiki.mozilla.org/Security/Server_Side_TLS#Modern_compatibility
-			NextProtos: []string{"http/1.1", "h2"},
+			NextProtos: []string{"h2", "http/1.1"},
 			// https://www.owasp.org/index.php/Transport_Layer_Protection_Cheat_Sheet#Rule_-_Only_Support_Strong_Protocols
 			MinVersion: tls.VersionTLS12,
 			// These ciphersuites support Forward Secrecy: https://en.wikipedia.org/wiki/Forward_secrecy
@@ -294,7 +291,7 @@ func (s *Server) Serve() (err error) {
 		// call custom TLS configurator
 		configureTLS(httpsServer.TLSConfig)
 
-		if len(httpsServer.TLSConfig.Certificates) == 0 {
+		if len(httpsServer.TLSConfig.Certificates) == 0 && httpsServer.TLSConfig.GetCertificate == nil {
 			// after standard and custom config are passed, this ends up with no certificate
 			if s.TLSCertificate == "" {
 				if s.TLSCertificateKey == "" {
@@ -325,6 +322,9 @@ func (s *Server) Serve() (err error) {
 			s.Logf("Stopped serving choria central signing service at https://%s", l.Addr())
 		}(tls.NewListener(s.httpsServerL, httpsServer.TLSConfig))
 	}
+
+	wg.Add(1)
+	go s.handleShutdown(wg, &servers)
 
 	wg.Wait()
 	return nil
@@ -411,7 +411,7 @@ func (s *Server) Shutdown() error {
 
 func (s *Server) handleShutdown(wg *sync.WaitGroup, serversPtr *[]*http.Server) {
 	// wg.Done must occur last, after s.api.ServerShutdown()
-	// (to preserve old behavior)
+	// (to preserve old behaviour)
 	defer wg.Done()
 
 	<-s.shutdown
@@ -420,6 +420,9 @@ func (s *Server) handleShutdown(wg *sync.WaitGroup, serversPtr *[]*http.Server) 
 
 	ctx, cancel := context.WithTimeout(context.TODO(), s.GracefulTimeout)
 	defer cancel()
+
+	// first execute the pre-shutdown hook
+	s.api.PreServerShutdown()
 
 	shutdownChan := make(chan bool)
 	for i := range servers {
@@ -490,7 +493,7 @@ func (s *Server) TLSListener() (net.Listener, error) {
 
 func handleInterrupt(once *sync.Once, s *Server) {
 	once.Do(func() {
-		for _ = range s.interrupt {
+		for range s.interrupt {
 			if s.interrupted {
 				s.Logf("Server already shutting down")
 				continue

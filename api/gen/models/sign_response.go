@@ -6,13 +6,14 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
-	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // SignResponse sign response
+//
 // swagger:model SignResponse
 type SignResponse struct {
 
@@ -26,26 +27,11 @@ type SignResponse struct {
 
 // Validate validates this sign response
 func (m *SignResponse) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.validateSecureRequest(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
 	return nil
 }
 
-func (m *SignResponse) validateSecureRequest(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.SecureRequest) { // not required
-		return nil
-	}
-
-	// Format "byte" (base64 string) is already validated when unmarshalled
-
+// ContextValidate validates this sign response based on context it is used
+func (m *SignResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

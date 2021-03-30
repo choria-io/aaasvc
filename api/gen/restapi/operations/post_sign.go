@@ -8,7 +8,7 @@ package operations
 import (
 	"net/http"
 
-	middleware "github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/runtime/middleware"
 )
 
 // PostSignHandlerFunc turns a function with the right signature into a post sign handler
@@ -29,7 +29,7 @@ func NewPostSign(ctx *middleware.Context, handler PostSignHandler) *PostSign {
 	return &PostSign{Context: ctx, Handler: handler}
 }
 
-/*PostSign swagger:route POST /sign postSign
+/* PostSign swagger:route POST /sign postSign
 
 Sign a message
 
@@ -47,14 +47,12 @@ func (o *PostSign) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		r = rCtx
 	}
 	var Params = NewPostSignParams()
-
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
 	res := o.Handler.Handle(Params) // actually handle the request
-
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }

@@ -17,17 +17,17 @@ task :build do
   sha = `git rev-parse --short HEAD`.chomp
   build = ENV["BUILD"] || "foss"
   packages = (ENV["PACKAGES"] || "").split(",")
-  packages = ["el7_64", "el6_64"] if packages.empty?
+  packages = ["el7_64", "el8_64"] if packages.empty?
 
   source = "/go/src/github.com/choria-io/aaasvc"
 
   packages.each do |pkg|
     if pkg =~ /^(.+?)_(.+)$/
-      builder = "choria/packager:%s-go1.13" % $1
+      builder = "choria/packager:%s-go1.16" % $1
     elsif ["puppet", "docker"].include?(pkg)
-      builder = "choria/packager:el7-go1.13-puppet"
+      builder = "choria/packager:el7-go1.16-puppet"
     else
-      builder = "choria/packager:el7-go1.13"
+      builder = "choria/packager:el7-go1.16"
     end
 
     sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:%s -e SOURCE_DIR=%s -e ARTIFACTS=%s -e SHA1="%s" -e BUILD="%s" -e VERSION="%s" -e PACKAGE=%s %s' % [

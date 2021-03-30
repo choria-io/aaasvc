@@ -8,7 +8,7 @@ package operations
 import (
 	"net/http"
 
-	middleware "github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/runtime/middleware"
 )
 
 // PostLoginHandlerFunc turns a function with the right signature into a post login handler
@@ -29,7 +29,7 @@ func NewPostLogin(ctx *middleware.Context, handler PostLoginHandler) *PostLogin 
 	return &PostLogin{Context: ctx, Handler: handler}
 }
 
-/*PostLogin swagger:route POST /login postLogin
+/* PostLogin swagger:route POST /login postLogin
 
 Logs into the service using auth0
 
@@ -47,14 +47,12 @@ func (o *PostLogin) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		r = rCtx
 	}
 	var Params = NewPostLoginParams()
-
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
 	res := o.Handler.Handle(Params) // actually handle the request
-
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }

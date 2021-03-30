@@ -56,7 +56,7 @@ var _ = Describe("Authenticators/Userlist", func() {
 			_, err := New(&AuthenticatorConfig{
 				TokenValidity: "1y",
 			}, log, "ginkgo")
-			Expect(err).To(MatchError("invalid token validity: time: unknown unit y in duration 1y"))
+			Expect(err).To(MatchError("invalid token validity: time: unknown unit \"y\" in duration \"1y\""))
 
 			_, err = New(&AuthenticatorConfig{
 				TokenValidity: "1h",
