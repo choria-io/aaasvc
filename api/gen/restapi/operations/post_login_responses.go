@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-openapi/runtime"
 
-	models "github.com/choria-io/aaasvc/api/gen/models"
+	"github.com/choria-io/aaasvc/api/gen/models"
 )
 
 // PostLoginOKCode is the HTTP code returned for type PostLoginOK

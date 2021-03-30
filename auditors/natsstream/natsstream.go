@@ -87,7 +87,7 @@ func (ns *NatsStream) connect() (err error) {
 	ctx := context.Background()
 
 	reconn := make(chan struct{})
-	cid := choria.UniqueID()
+	cid := ns.fw.UniqueID()
 	servers, _ := ns.servers()
 	ns.log.Warnf("connecting to stream: %#v\n", servers)
 

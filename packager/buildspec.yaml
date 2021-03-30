@@ -24,14 +24,14 @@ foss:
       target_arch: x86_64
       binary: 64bit_linux
 
-    el6_64:
-      dist: el6
-      template: el/el6
-      target_arch: x86_64
-      binary: 64bit_linux
-
     el7_64:
       dist: el7
       template: el/el7
+      target_arch: x86_64
+      binary: 64bit_linux
+
+    el8_64:
+      dist: el8
+      template: el/el8
       target_arch: x86_64
       binary: 64bit_linux

@@ -108,7 +108,7 @@ func (a *JetStream) worker(ctx context.Context) {
 }
 
 func (a *JetStream) connect(ctx context.Context) (err error) {
-	a.nc, err = a.fw.NewConnector(ctx, a.servers, choria.UniqueID(), a.log)
+	a.nc, err = a.fw.NewConnector(ctx, a.servers, a.fw.UniqueID(), a.log)
 	if err != nil {
 		return fmt.Errorf("could not start NATS connection: %w", err)
 	}
