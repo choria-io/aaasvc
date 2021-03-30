@@ -1,5 +1,10 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2021/03/30|      |Release 0.4.0                                                                                            |
+|2021/03/30|77    |Add a `ou` claim in the userlist authenticator for future multi tenancy support                          |
+|2021/03/30|      |Upgrade to go 1.16, deprecate EL6 packages                                                               |
+|2021/03/30|75    |Package for el8                                                                                          |
+|2020/10/13|72    |Bounds check the agent claim                                                                             |
 |2020/06/16|      |Release 0.3.3                                                                                            |
 |2020/06/16|      |Update dependencies for `certmanager` support                                                            |
 |2020/01/06|      |Release 0.3.2                                                                                            |
