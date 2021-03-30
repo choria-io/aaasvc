@@ -36,6 +36,7 @@ This is under active development, see the Issues list for current outstanding it
    * [Okta identity cloud](https://okta.com/)
    * Static configured users with support for basic agent+action ACLs as well as Open Policy Agent policies
    * Capable of running centrally separate from signers
+   * Supports setting the Choria Organization claim for multi tenancy (not for okta users)
  * Authorization
    * JWT token claims based allow list for access to agents and actions
    * JWT token claims based Open Policy Agent rego files
@@ -107,7 +108,8 @@ The signer uses a JSON file for configuration and lets you compose the system as
         ],
         "properties": {
           "group": "admins"
-        }
+        },
+        "organization": "acme"
       },
       {
         "username": "admin",
@@ -115,7 +117,8 @@ The signer uses a JSON file for configuration and lets you compose the system as
         "properties": {
           "group": "admins"
         },
-        "opa_policy_file": "/etc/choria/signer/common.rego"
+        "opa_policy_file": "/etc/choria/signer/common.rego",
+        "organization": "acme"
       }
     ]
   }
@@ -231,13 +234,15 @@ $2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e
         "username": "puppetadmin",
         "password": "$2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e",
         "acls": [
-          "puppet.*",
-        ]
+          "puppet.*"
+        ],
+        "organization": "acme"
       },
       {
         "username": "admin",
         "password": ".....",
-        "opa_policy_file": "/etc/choria/signer/common.rego"
+        "opa_policy_file": "/etc/choria/signer/common.rego",
+        "organization": "acme"
       }
     ]
   }
@@ -265,13 +270,15 @@ Where `users.json` would have:
     "username": "puppetadmin",
     "password": "$2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e",
     "acls": [
-      "puppet.*",
-    ]
+      "puppet.*"
+    ],
+    "organization": "acme"
   },
   {
     "username": "admin",
     "password": ".....",
-    "opa_policy_file": "/etc/choria/signer/common.rego"
+    "opa_policy_file": "/etc/choria/signer/common.rego",
+    "organization": "acme"
   }
 ]
 ```

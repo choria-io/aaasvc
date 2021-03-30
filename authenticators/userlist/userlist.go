@@ -101,8 +101,13 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 		"iat":      time.Now().UTC().Unix(),
 		"iss":      "Choria Userlist Authenticator",
 		"callerid": fmt.Sprintf("up=%s", req.Username),
-		"sub":      fmt.Sprintf("up=%s", req.Username),
+		"sub":      "choria_client",
 		"agents":   user.ACLs,
+		"ou":       "choria",
+	}
+
+	if user.Organization != "" {
+		claims["ou"] = user.Organization
 	}
 
 	policy, err := user.OpenPolicy()

@@ -29,6 +29,7 @@ var _ = Describe("Authorizers/OPA", func() {
 	BeforeEach(func() {
 		logger := logrus.New()
 		logger.Out = GinkgoWriter
+		logger.Level=logrus.DebugLevel
 		log = logrus.NewEntry(logger)
 		auth = &Authorizer{log: log, site: "ginkgo"}
 
@@ -54,6 +55,9 @@ var _ = Describe("Authorizers/OPA", func() {
 			claims = jwt.MapClaims(map[string]interface{}{
 				"opa_policy": policy,
 				"callerid":   "up=bob",
+				"user_properties": map[string]interface{}{
+					"group": "admins",
+				},
 			})
 
 			allowed, err := auth.evaluatePolicy(req, policy, claims)
@@ -67,6 +71,9 @@ var _ = Describe("Authorizers/OPA", func() {
 		claims = jwt.MapClaims(map[string]interface{}{
 			"opa_policy": policy,
 			"callerid":   "up=bob",
+			"user_properties": map[string]interface{}{
+				"group": "admins",
+			},
 		})
 
 		req.Filter.AddClassFilter("apache")

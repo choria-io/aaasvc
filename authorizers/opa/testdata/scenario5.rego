@@ -14,4 +14,5 @@ allow {
     input.sender == "some.node"
     input.site == "ginkgo"
     input.claims.callerid == "up=bob"
+    input.claims.user_properties.group == "admins"
 }
