@@ -198,7 +198,7 @@ plugin.choria.security.request_signer.token_environment = CHORIA_TOKEN
 You'll need to set the token in your shell:
 
 ```
-export CHORIA_TOKEN=$(curl -s --request POST -d '{"username":"puppetadmin", "password":"secret"}' -H "Content-type: application/json" https://localhost:8080/choria/v1/login)
+export CHORIA_TOKEN=$(curl -s --request POST -d '{"username":"puppetadmin", "password":"secret"}' -H "Content-type: application/json" https://localhost:8080/choria/v1/login | jq -r .token)
 ```
 
 At this point you can use `mco` cli as always, requests will be sent to the signer for signing, users will not need their own certificates or use `mco choria request_cert`
