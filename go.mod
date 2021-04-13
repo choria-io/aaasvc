@@ -10,20 +10,20 @@ require (
 	github.com/go-openapi/loads v0.20.2
 	github.com/go-openapi/runtime v0.19.27
 	github.com/go-openapi/spec v0.20.3
-	github.com/go-openapi/strfmt v0.20.0
-	github.com/go-openapi/swag v0.19.14
+	github.com/go-openapi/strfmt v0.20.1
+	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.20.2
 	github.com/golang/mock v1.5.0
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/nats-io/stan.go v0.8.3
 	github.com/okta/okta-sdk-golang/v2 v2.3.0
-	github.com/onsi/ginkgo v1.15.2
+	github.com/onsi/ginkgo v1.16.1
 	github.com/onsi/gomega v1.11.0
 	github.com/open-policy-agent/opa v0.27.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.10.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/tidwall/gjson v1.7.1
-	golang.org/x/crypto v0.0.0-20210314154223-e6e6c4f2bb5b
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
+	github.com/tidwall/gjson v1.7.4
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
 )
