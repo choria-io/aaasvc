@@ -60,13 +60,17 @@ func serve(conf *config.Config) error {
 	server.EnabledListeners = []string{"http"}
 
 	if !notls {
-		if conf.TLSCertificate == "" || conf.TLSKey == "" || conf.TLSCA == "" {
+		if conf.TLSCertificate == "" || conf.TLSKey == "" {
 			return fmt.Errorf("TLS settings are not set")
 		}
 
 		server.TLSCertificate = flags.Filename(conf.TLSCertificate)
 		server.TLSCertificateKey = flags.Filename(conf.TLSKey)
-		server.TLSCACertificate = flags.Filename(conf.TLSCA)
+
+		// when TLSCA is not set it disables client cert validation / mTLS
+		if conf.TLSCA != "" {
+			server.TLSCACertificate = flags.Filename(conf.TLSCA)
+		}
 
 		server.TLSPort = conf.Port
 		server.Port = 0
