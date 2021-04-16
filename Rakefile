@@ -14,6 +14,7 @@ end
 desc "Builds packages"
 task :build do
   version = ENV["VERSION"] || "0.0.0"
+  docker_socket = ENV["DOCKER_SOCKET"] || "/var/run/docker.sock"
   sha = `git rev-parse --short HEAD`.chomp
   build = ENV["BUILD"] || "foss"
   packages = (ENV["PACKAGES"] || "").split(",")
@@ -30,7 +31,8 @@ task :build do
       builder = "choria/packager:el7-go1.16"
     end
 
-    sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:%s -e SOURCE_DIR=%s -e ARTIFACTS=%s -e SHA1="%s" -e BUILD="%s" -e VERSION="%s" -e PACKAGE=%s %s' % [
+    sh 'docker run --rm -v %s:/var/run/docker.sock -v `pwd`:%s -e SOURCE_DIR=%s -e ARTIFACTS=%s -e SHA1="%s" -e BUILD="%s" -e VERSION="%s" -e PACKAGE=%s %s' % [
+      docker_socket,
       source,
       source,
       source,
