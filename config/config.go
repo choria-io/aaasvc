@@ -10,7 +10,7 @@ import (
 	"github.com/choria-io/aaasvc/authenticators"
 	"github.com/choria-io/aaasvc/authenticators/okta"
 	"github.com/choria-io/aaasvc/authenticators/userlist"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/aaasvc/auditors/jetstream"
