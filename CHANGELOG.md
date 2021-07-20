@@ -1,5 +1,9 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2021/07/20|      |Release 0.5.0                                                                                            |
+|2021/07/20|      |Move to `github.com/golang-jwt/jwt`                                                                      |
+|2021/04/16|      |Various build tooling updates to support Podman and use go 1.16 everywhere                               |
+|2021/04/13|81    |Support disabling mTLS by not setting a CA                                                               |
 |2021/03/30|      |Release 0.4.0                                                                                            |
 |2021/03/30|77    |Add a `ou` claim in the userlist authenticator for future multi tenancy support                          |
 |2021/03/30|      |Upgrade to go 1.16, deprecate EL6 packages                                                               |
