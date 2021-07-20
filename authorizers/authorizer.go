@@ -2,7 +2,7 @@ package authorizers
 
 import (
 	"github.com/choria-io/go-choria/protocol"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 // Authorizer is used to authorize a request based on its JWT claims

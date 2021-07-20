@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"

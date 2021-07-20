@@ -9,7 +9,7 @@ import (
 
 	"github.com/choria-io/go-choria/protocol"
 	"github.com/choria-io/go-choria/providers/agent/mcorpc"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
@@ -29,7 +29,7 @@ var _ = Describe("Authorizers/OPA", func() {
 	BeforeEach(func() {
 		logger := logrus.New()
 		logger.Out = GinkgoWriter
-		logger.Level=logrus.DebugLevel
+		logger.Level = logrus.DebugLevel
 		log = logrus.NewEntry(logger)
 		auth = &Authorizer{log: log, site: "ginkgo"}
 
