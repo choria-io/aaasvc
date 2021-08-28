@@ -40,6 +40,9 @@ type SignerConfig struct {
 
 	// MaxValidity is the maximum token validity from current time to sign, this is to avoid someone issuing infinite or many year long tokens that can be a real problem should they leak
 	MaxValidity string `json:"max_validity"`
+
+	// ChoriaService enables the choria service to sign requests
+	ChoriaService bool `json:"choria_service"`
 }
 
 // BasicJWT is a very basic JWT based signer
@@ -84,6 +87,11 @@ func (s *BasicJWT) SetAuthorizer(a authorizers.Authorizer) {
 	s.auth = a
 }
 
+// SignRequest signs req based on token using same rules as Sign()
+func (s *BasicJWT) SignRequest(req []byte, token string) (bool, []byte, error) {
+	return s.signRequest(req, token)
+}
+
 // Sign creates a new secure request from the given request after authz
 //
 // - The token is validated for time etc
@@ -103,67 +111,70 @@ func (s *BasicJWT) Sign(req *models.SignRequest) (sr *models.SignResponse) {
 	return sr
 }
 
-func (s *BasicJWT) sign(req *models.SignRequest) (sr *models.SignResponse) {
-	sr = &models.SignResponse{}
-
-	request, err := newRequestFromJSON([]byte(req.Request))
+func (s *BasicJWT) signRequest(req []byte, token string) (bool, []byte, error) {
+	request, err := newRequestFromJSON(req)
 	if err != nil {
-		s.logAndSetErr(sr, "Could not parse request: %s", err)
-		return sr
+		return false, nil, fmt.Errorf("invalid request: %s", err)
 	}
 
-	_, claims, err := s.parseJWT(req.Token)
+	_, claims, err := s.parseJWT(token)
 	if err != nil {
 		s.auditRequest(auditors.Deny, request)
-		s.logAndSetErr(sr, "Could not parse token: %s", err)
-		return sr
+		return false, nil, fmt.Errorf("invalid token: %s", err)
 	}
 
 	err = s.setCaller(request, claims)
 	if err != nil {
 		s.auditRequest(auditors.Deny, request)
-		s.logAndSetErr(sr, "Could not override caller id: %s", err)
-		return sr
+		return false, nil, fmt.Errorf("could not set caller id: %s", err)
 	}
 
 	allowed, err := s.auth.Authorize(request, claims)
 	if err != nil {
 		s.auditRequest(auditors.Deny, request)
-		s.logAndSetErr(sr, "Could not authorize request: %s", err)
-		return sr
+		return false, nil, fmt.Errorf("authorization failed: %s", err)
 	}
 
 	if !allowed {
 		s.auditRequest(auditors.Deny, request)
-		sr.Error = "Not allowed to perform request"
 		s.log.Warnf("Denying request %s from %s@%s for %s", request.RequestID(), request.CallerID(), request.SenderID(), request.Agent())
-		return sr
+		return false, nil, nil
 	}
 
 	s.auditRequest(auditors.Allow, request)
 
 	srequest, err := s.fw.NewSecureRequest(request)
 	if err != nil {
-		s.logAndSetErr(sr, "Could not create secure request: %s", err)
-		return sr
+		return false, nil, fmt.Errorf("secure request failed: %s", err)
 	}
 
 	srj, err := srequest.JSON()
 	if err != nil {
-		s.logAndSetErr(sr, "Could not encode secure request to JSON: %s", err)
-		return sr
+		return false, nil, fmt.Errorf("secure request failed: %s", err)
 	}
-
-	sr.SecureRequest = []byte(srj)
 
 	s.log.Infof("Allowing request %s from %s@%s for %s", request.RequestID(), request.CallerID(), request.SenderID(), request.Agent())
 
-	return sr
+	return true, []byte(srj), nil
 }
 
-func (s *BasicJWT) logAndSetErr(resp *models.SignResponse, msg string, err error) {
-	resp.Error = fmt.Sprintf(msg, err)
-	s.log.Warnf(resp.Error)
+func (s *BasicJWT) sign(req *models.SignRequest) (sr *models.SignResponse) {
+	sr = &models.SignResponse{}
+
+	allowed, signed, err := s.signRequest(req.Request, req.Token)
+	switch {
+	case !allowed && err == nil:
+		sr.Error = "Request denied"
+
+	case err != nil:
+		s.log.Warnf("Signing failed: %s", err)
+		sr.Error = "Request denied"
+
+	case allowed:
+		sr.SecureRequest = signed
+	}
+
+	return sr
 }
 
 func (s *BasicJWT) auditRequest(action auditors.Action, request protocol.Request) {

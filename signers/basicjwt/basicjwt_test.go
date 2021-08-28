@@ -80,7 +80,7 @@ var _ = Describe("BasicJWT", func() {
 
 		It("Should handle bad requests", func() {
 			res := signer.Sign(req)
-			Expect(res.Error).To(Equal("Could not parse request: invalid request version '' expected choria:request:1"))
+			Expect(res.Error).To(Equal("Request denied"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
@@ -89,7 +89,7 @@ var _ = Describe("BasicJWT", func() {
 			req.Request = []byte(rpcreqstr)
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
-			Expect(res.Error).To(Equal("Could not parse token: token contains an invalid number of segments"))
+			Expect(res.Error).To(Equal("Request denied"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
@@ -98,7 +98,7 @@ var _ = Describe("BasicJWT", func() {
 			req.Request = []byte(rpcreqstr)
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
-			Expect(res.Error).To(Equal("Could not parse token: invalid claims: expiry is not set or it is too far in the future"))
+			Expect(res.Error).To(Equal("Request denied"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
@@ -107,7 +107,7 @@ var _ = Describe("BasicJWT", func() {
 			req.Request = []byte(rpcreqstr)
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
-			Expect(res.Error).To(Equal("Could not parse token: invalid claims: expiry is not set or it is too far in the future"))
+			Expect(res.Error).To(Equal("Request denied"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
@@ -116,7 +116,7 @@ var _ = Describe("BasicJWT", func() {
 			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(false, fmt.Errorf("simulated failure"))
 			res := signer.Sign(req)
-			Expect(res.Error).To(Equal("Could not authorize request: simulated failure"))
+			Expect(res.Error).To(Equal("Request denied"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
@@ -125,7 +125,7 @@ var _ = Describe("BasicJWT", func() {
 			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(false, nil)
 			res := signer.Sign(req)
-			Expect(res.Error).To(Equal("Not allowed to perform request"))
+			Expect(res.Error).To(Equal("Request denied"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 

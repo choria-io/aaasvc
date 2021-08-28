@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/alecthomas/kingpin"
 )
@@ -14,6 +17,9 @@ var (
 	err     error
 	pidfile string
 	notls   bool
+
+	ctx    context.Context
+	cancel func()
 
 	runcmd   *kingpin.CmdClause
 	cryptcmd *kingpin.CmdClause
@@ -33,6 +39,11 @@ func Run() {
 
 	command := kingpin.MustParse(app.Parse(os.Args[1:]))
 
+	ctx, cancel = context.WithCancel(context.Background())
+	defer cancel()
+
+	go interruptWatcher()
+
 	if command == cryptcmd.FullCommand() {
 		err = crypt()
 		kingpin.FatalIfError(err, "could not run: %s", err)
@@ -49,4 +60,17 @@ func Run() {
 	}
 
 	kingpin.FatalIfError(err, "could not run")
+}
+
+func interruptWatcher() {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	select {
+	case <-sigs:
+		cancel()
+	case <-ctx.Done():
+		return
+	}
+
 }

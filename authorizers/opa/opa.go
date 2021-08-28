@@ -128,6 +128,7 @@ func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claim
 	data := make(map[string]interface{})
 	err = json.Unmarshal(rpcreq.Data, &data)
 	if err != nil {
+		a.log.Errorf("Invalid data: %s", rpcreq.Data)
 		return false, fmt.Errorf("could not parse data embedded in request: %v", err)
 	}
 
