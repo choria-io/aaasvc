@@ -13,6 +13,7 @@ import (
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/auditors/notification"
 	"github.com/choria-io/go-choria/choria"
+	"github.com/choria-io/go-choria/inter"
 	"github.com/choria-io/go-choria/protocol"
 	"github.com/choria-io/go-choria/srvcache"
 	"github.com/sirupsen/logrus"
@@ -31,7 +32,7 @@ type AuditorConfig struct {
 type JetStream struct {
 	conf    *AuditorConfig
 	servers func() (srvcache.Servers, error)
-	nc      choria.Connector
+	nc      inter.Connector
 	fw      *choria.Framework
 	log     *logrus.Entry
 	outbox  chan interface{}

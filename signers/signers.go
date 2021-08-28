@@ -1,11 +1,11 @@
 package signers
 
 import (
+	"fmt"
 	"sync"
 
-	"github.com/choria-io/aaasvc/authorizers"
-
 	"github.com/choria-io/aaasvc/auditors"
+	"github.com/choria-io/aaasvc/authorizers"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/api/gen/restapi/operations"
@@ -17,8 +17,11 @@ var mu = &sync.Mutex{}
 
 // Signer is a interface that describes software capable of signing a request
 type Signer interface {
-	// Sign takes a request and sign it if desired, else setting errors in the sr
+	// Sign takes a HTTP request and sign it if desired, else setting errors in the sr
 	Sign(req *models.SignRequest) *models.SignResponse
+
+	// SignRequest signs req based on token
+	SignRequest(req []byte, token string) (bool, []byte, error)
 
 	// SetAuditors add auditors to be called after signing actions
 	SetAuditors(...auditors.Auditor)
@@ -35,14 +38,28 @@ func SetSigner(s Signer) {
 	signer = s
 }
 
+// SignRequest signs a request based on a token using the configured signer
+func SignRequest(req []byte, token string) (bool, []byte, error) {
+	mu.Lock()
+	s := signer
+	mu.Unlock()
+
+	if s == nil {
+		return false, nil, fmt.Errorf("no signer configured")
+	}
+
+	return s.SignRequest(req, token)
+}
+
 // SignHandler is a HTTP middleware handler for signing messages using the signer set by SetSigner
 func SignHandler(params operations.PostSignParams) middleware.Responder {
 	mu.Lock()
-	defer mu.Unlock()
+	s := signer
+	mu.Unlock()
 
-	if signer == nil {
+	if s == nil {
 		return operations.NewPostSignOK().WithPayload(&models.SignResponse{Error: "No signer configured"})
 	}
 
-	return operations.NewPostSignOK().WithPayload(signer.Sign(params.Request))
+	return operations.NewPostSignOK().WithPayload(s.Sign(params.Request))
 }

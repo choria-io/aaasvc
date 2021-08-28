@@ -128,7 +128,9 @@ func New(file string) (conf *Config, err error) {
 
 	ccfg.LogFile = conf.LogFile
 	ccfg.LogLevel = conf.LogLevel
-	ccfg.DisableTLS = true
+	ccfg.RPCAuthorization = false
+	// by definition these are clients who do not have security credentials, verification is based on the JWT
+	ccfg.DisableSecurityProviderVerify = true
 
 	conf.fw, err = choria.NewWithConfig(ccfg)
 	if err != nil {

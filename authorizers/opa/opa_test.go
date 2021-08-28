@@ -52,13 +52,13 @@ var _ = Describe("Authorizers/OPA", func() {
 
 		for r := 1; r <= 5; r++ {
 			policy := readFixture(fmt.Sprintf("testdata/scenario%d.rego", r))
-			claims = jwt.MapClaims(map[string]interface{}{
+			claims = map[string]interface{}{
 				"opa_policy": policy,
 				"callerid":   "up=bob",
 				"user_properties": map[string]interface{}{
 					"group": "admins",
 				},
-			})
+			}
 
 			allowed, err := auth.evaluatePolicy(req, policy, claims)
 			Expect(err).ToNot(HaveOccurred())
@@ -68,13 +68,13 @@ var _ = Describe("Authorizers/OPA", func() {
 
 	It("Should fail on all common scenarios", func() {
 		policy := readFixture("testdata/scenario5.rego")
-		claims = jwt.MapClaims(map[string]interface{}{
+		claims = map[string]interface{}{
 			"opa_policy": policy,
 			"callerid":   "up=bob",
 			"user_properties": map[string]interface{}{
 				"group": "admins",
 			},
-		})
+		}
 
 		req.Filter.AddClassFilter("apache")
 		req.Filter.AddIdentityFilter("some.node")

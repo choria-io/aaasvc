@@ -6,14 +6,17 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/choria-io/aaasvc/api/gen/restapi"
 	"github.com/choria-io/aaasvc/api/gen/restapi/operations"
 	"github.com/choria-io/aaasvc/authenticators"
 	"github.com/choria-io/aaasvc/config"
+	"github.com/choria-io/aaasvc/service"
 	"github.com/choria-io/aaasvc/signers"
+	"github.com/choria-io/go-choria/server"
 	"github.com/go-openapi/loads"
-	flags "github.com/jessevdk/go-flags"
+	"github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/pkg/errors"
@@ -47,6 +50,26 @@ func servePrometheus(port int) {
 }
 
 func serve(conf *config.Config) error {
+	wg := &sync.WaitGroup{}
+
+	if conf.Port > 0 {
+		wg.Add(1)
+		go serveHTTP(wg, conf)
+	}
+
+	if conf.BasicJWTSigner != nil && conf.BasicJWTSigner.ChoriaService {
+		wg.Add(1)
+		go serveChoria(wg, conf)
+	}
+
+	wg.Wait()
+
+	return nil
+}
+
+func serveHTTP(wg *sync.WaitGroup, conf *config.Config) error {
+	defer wg.Done()
+
 	swaggerSpec, err := loads.Analyzed(restapi.SwaggerJSON, "")
 	if err != nil {
 		log.Fatalln(err)
@@ -86,4 +109,33 @@ func serve(conf *config.Config) error {
 	}
 
 	return server.Serve()
+}
+
+func serveChoria(wg *sync.WaitGroup, conf *config.Config) error {
+	defer wg.Done()
+
+	fw := conf.Choria()
+
+	instance, err := server.NewInstance(fw)
+	if err != nil {
+		return err
+	}
+
+	agent, err := service.NewService(fw, Version, fw.Logger("agent"))
+	if err != nil {
+		return err
+	}
+
+	wg.Add(1)
+	err = instance.RunServiceHost(ctx, wg)
+	if err != nil {
+		return err
+	}
+
+	err = instance.RegisterAgent(ctx, agent.Name(), agent)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

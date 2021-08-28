@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/golang:1.16
+      - image: circleci/golang:1.17
 
     working_directory: /go/src/github.com/choria-io/aaasvc
 
@@ -24,14 +24,14 @@ jobs:
 
   build_el7_64bit_rpms: &pkg_build
     docker:
-      - image: circleci/golang:1.16
+      - image: circleci/golang:1.17
 
     working_directory: /go/src/github.com/choria-io/aaasvc
 
     environment:
       PACKAGE: el7_64
       BUILD: foss
-      BUILDER: choria/packager:el7-go1.16
+      BUILDER: choria/packager:el7-go1.17
 
     steps: &std_build_steps
       - setup_remote_docker
@@ -76,11 +76,11 @@ jobs:
     environment:
       PACKAGE: el8_64
       BUILD: foss
-      BUILDER: choria/packager:el8-go1.16
+      BUILDER: choria/packager:el8-go1.17
 
   gather_artifacts:
     docker:
-      - image: circleci/golang:1.16
+      - image: circleci/golang:1.17
 
     steps:
       - attach_workspace:
