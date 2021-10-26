@@ -307,6 +307,7 @@ func (s *Server) Serve() (err error) {
 		}
 
 		// must have at least one certificate or panics
+		//lint:ignore SA1019 generated code
 		httpsServer.TLSConfig.BuildNameToCertificate()
 
 		configureServer(httpsServer, "https", s.httpsServerL.Addr().String())
@@ -411,7 +412,7 @@ func (s *Server) Shutdown() error {
 
 func (s *Server) handleShutdown(wg *sync.WaitGroup, serversPtr *[]*http.Server) {
 	// wg.Done must occur last, after s.api.ServerShutdown()
-	// (to preserve old behaviour)
+	// (to preserve old behavior)
 	defer wg.Done()
 
 	<-s.shutdown
