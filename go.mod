@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
-	github.com/choria-io/go-choria v0.24.2-0.20211026184939-381e7dadcba7
+	github.com/choria-io/go-choria v0.24.2-0.20211103110319-2b968afdc3f2
 	github.com/go-openapi/errors v0.20.1
 	github.com/go-openapi/loads v0.20.2
 	github.com/go-openapi/runtime v0.19.30
@@ -19,13 +19,13 @@ require (
 	github.com/okta/okta-sdk-golang/v2 v2.6.1
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.16.0
-	github.com/open-policy-agent/opa v0.33.1
+	github.com/open-policy-agent/opa v0.34.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/tidwall/gjson v1.10.2
+	github.com/tidwall/gjson v1.11.0
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
-	golang.org/x/net v0.0.0-20211020060615-d418f374d309
+	golang.org/x/net v0.0.0-20211101193420-4a448f8816b3
 )
 
 require (
@@ -78,9 +78,9 @@ require (
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/nats-io/jsm.go v0.0.27-0.20211006163108-9aae04fb57e9 // indirect
-	github.com/nats-io/nats-server/v2 v2.6.3-0.20211026165144-1441d2597749 // indirect
-	github.com/nats-io/nats.go v1.13.1-0.20211018182449-f2416a8b1483 // indirect
+	github.com/nats-io/jsm.go v0.0.27-0.20211028083116-961936f4a85a // indirect
+	github.com/nats-io/nats-server/v2 v2.6.4-0.20211102224013-c2cb19ce0955 // indirect
+	github.com/nats-io/nats.go v1.13.1-0.20211031210100-5c4ad1696c20 // indirect
 	github.com/nats-io/nkeys v0.3.0 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
@@ -101,7 +101,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.17.0 // indirect
-	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
+	golang.org/x/sys v0.0.0-20211102061401-a2f17f7b995c // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect

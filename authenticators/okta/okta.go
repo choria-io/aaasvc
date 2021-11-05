@@ -15,7 +15,6 @@ import (
 	"github.com/choria-io/aaasvc/authenticators"
 	"github.com/golang-jwt/jwt"
 	"github.com/okta/okta-sdk-golang/v2/okta"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
@@ -54,7 +53,7 @@ type tokenResponse struct {
 func New(c *AuthenticatorConfig, log *logrus.Entry, site string) (a *Authenticator, err error) {
 	validity, err := time.ParseDuration(c.TokenValidity)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid token validity")
+		return nil, fmt.Errorf("invalid token validity: %s", err)
 	}
 
 	a = &Authenticator{
@@ -112,14 +111,16 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 		}
 	}
 
+	cid := fmt.Sprintf("okta=%s", req.Username)
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS512"), jwt.MapClaims{
 		"exp":      time.Now().UTC().Add(a.validity).Unix(),
 		"nbf":      time.Now().UTC().Add(-1 * time.Minute).Unix(),
 		"iat":      time.Now().UTC().Unix(),
 		"iss":      "Choria Okta Authenticator",
-		"sub":      fmt.Sprintf("okta=%s", req.Username),
+		"callerid": cid,
+		"sub":      cid,
+		"purpose":  "choria_client_id",
 		"agents":   allowedActions,
-		"callerid": fmt.Sprintf("okta=%s", req.Username),
 	})
 
 	signKey, err := a.signKey()
@@ -142,12 +143,12 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 func (a *Authenticator) signKey() (*rsa.PrivateKey, error) {
 	pkeyBytes, err := ioutil.ReadFile(a.c.SigningKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not read")
+		return nil, fmt.Errorf("could not read: %s", err)
 	}
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(pkeyBytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse")
+		return nil, fmt.Errorf("could not parse: %s", err)
 	}
 
 	return signKey, nil
@@ -162,7 +163,7 @@ func (a *Authenticator) login(user string, password string) (resp *tokenResponse
 
 	post, err := http.NewRequest("POST", fmt.Sprintf("%s/oauth2/default/v1/token", a.c.EndPoint), bytes.NewBufferString(body.Encode()))
 	if err != nil {
-		return nil, false, errors.Wrap(err, "could not create request")
+		return nil, false, fmt.Errorf("could not create request: %s", err)
 	}
 
 	post.Header.Set("accept", "application/json")
@@ -172,23 +173,23 @@ func (a *Authenticator) login(user string, password string) (resp *tokenResponse
 	client := &http.Client{}
 	postresp, err := client.Do(post)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "could not create POST request")
+		return nil, false, fmt.Errorf("could not create POST request: %s", err)
 	}
 	defer postresp.Body.Close()
 
 	respbody, err := ioutil.ReadAll(postresp.Body)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "could not parse okta response")
+		return nil, false, fmt.Errorf("could not parse okta response: %s", err)
 	}
 
 	authresp := &tokenResponse{}
 	err = json.Unmarshal(respbody, authresp)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "could not parse response")
+		return nil, false, fmt.Errorf("could not parse response: %s", err)
 	}
 
 	if authresp.Error != "" {
-		return nil, false, errors.Errorf("login failed: %s", authresp.ErrorDescription)
+		return nil, false, fmt.Errorf("login failed: %s", authresp.ErrorDescription)
 	}
 
 	return authresp, true, nil
@@ -202,12 +203,12 @@ func (a *Authenticator) userGroups(userid string) (groups []string, err error) {
 
 	user, _, err := client.User.GetUser(ctx, userid)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not fetch user %s", userid)
+		return nil, fmt.Errorf("could not fetch user %s: %s", userid, err)
 	}
 
 	ogroups, _, err := client.User.ListUserGroups(ctx, user.Id)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not fetch groups for user %s", userid)
+		return nil, fmt.Errorf("could not fetch groups for user %s: %s", userid, err)
 	}
 
 	groups = []string{}
