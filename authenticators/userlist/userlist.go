@@ -17,7 +17,6 @@ import (
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/authenticators"
 	"github.com/golang-jwt/jwt"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -45,7 +44,7 @@ type Authenticator struct {
 func New(c *AuthenticatorConfig, log *logrus.Entry, site string) (a *Authenticator, err error) {
 	validity, err := time.ParseDuration(c.TokenValidity)
 	if err != nil {
-		return nil, errors.Wrap(err, "invalid token validity")
+		return nil, fmt.Errorf("invalid token validity: %s", err)
 	}
 
 	a = &Authenticator{
@@ -95,13 +94,15 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 		return
 	}
 
+	cid := fmt.Sprintf("up=%s", req.Username)
 	claims := map[string]interface{}{
 		"exp":      time.Now().UTC().Add(a.validity).Unix(),
 		"nbf":      time.Now().UTC().Add(-1 * time.Minute).Unix(),
 		"iat":      time.Now().UTC().Unix(),
 		"iss":      "Choria Userlist Authenticator",
-		"callerid": fmt.Sprintf("up=%s", req.Username),
-		"sub":      "choria_client",
+		"callerid": cid,
+		"sub":      cid,
+		"purpose":  "choria_client_id",
 		"agents":   user.ACLs,
 		"ou":       "choria",
 	}
@@ -195,12 +196,12 @@ func (a *Authenticator) getUser(u string) (usr *User, err error) {
 func (a *Authenticator) signKey() (*rsa.PrivateKey, error) {
 	pkeyBytes, err := ioutil.ReadFile(a.c.SigningKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not read")
+		return nil, fmt.Errorf("could not read: %s", err)
 	}
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(pkeyBytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse")
+		return nil, fmt.Errorf("could not parse: %s", err)
 	}
 
 	return signKey, nil
