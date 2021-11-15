@@ -36,19 +36,18 @@ This is under active development, see the Issues list for current outstanding it
    * [Okta identity cloud](https://okta.com/)
    * Static configured users with support for basic agent+action ACLs as well as Open Policy Agent policies
    * Capable of running centrally separate from signers
-   * Supports setting the Choria Organization claim for multi tenancy (not for okta users)
  * Authorization
    * JWT token claims based allow list for access to agents and actions
    * JWT token claims based Open Policy Agent rego files
  * Auditing
    * Log file based auditing
    * Messages published to NATS Stream
-   * Messages published to NATS JetStream
+   * Messages published to Choria Streams
  * Signing
    * JWT token based signer
    * Does not require access to the login service
    * Stateless capable of running regionally in clusters behind load balancers with no shared storage needs
- * Convenient `mco login` tool for authenticating to the service
+ * Compatible with `choria login`
  * Prometheus stats
  * CLI for encrypting secrets using bcrypt
  * Only supports HTTPS with verification disabled as clients lack certificates in this model
@@ -109,7 +108,6 @@ The signer uses a JSON file for configuration and lets you compose the system as
         "properties": {
           "group": "admins"
         },
-        "organization": "acme"
       },
       {
         "username": "admin",
@@ -118,7 +116,6 @@ The signer uses a JSON file for configuration and lets you compose the system as
           "group": "admins"
         },
         "opa_policy_file": "/etc/choria/signer/common.rego",
-        "organization": "acme"
       }
     ]
   }
@@ -214,7 +211,7 @@ While authentication is provided by this tool, it's optional you might choose to
 
 #### Static Configuration
 
-If using a service for this isn't for you you can also configure users and groups statically.
+If using a service for this isn't for you can also configure users and groups statically.
 
 Passwords are encrypted using `bcrypt`, you can use apache httpasswd to encrypt the passwords:
 
@@ -236,13 +233,11 @@ $2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e
         "acls": [
           "puppet.*"
         ],
-        "organization": "acme"
       },
       {
         "username": "admin",
         "password": ".....",
         "opa_policy_file": "/etc/choria/signer/common.rego",
-        "organization": "acme"
       }
     ]
   }
@@ -272,16 +267,22 @@ Where `users.json` would have:
     "acls": [
       "puppet.*"
     ],
-    "organization": "acme"
+     "broker_permissions": {
+        "events_viewer": true,
+     }
   },
   {
     "username": "admin",
     "password": ".....",
     "opa_policy_file": "/etc/choria/signer/common.rego",
-    "organization": "acme"
+     "broker_permissions": {
+        "org_admin": true,
+     }
   }
 ]
 ```
+
+The `broker_permissions` key corresponds with `tokens.ClientPermissions` in the `go-choria` package.
 
 #### Okta
 

@@ -12,24 +12,21 @@
 package basicjwt
 
 import (
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/signers"
-	"github.com/pkg/errors"
+	"github.com/choria-io/go-choria/inter"
+	"github.com/choria-io/go-choria/tokens"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/authorizers"
-	"github.com/choria-io/go-choria/choria"
 	"github.com/choria-io/go-choria/protocol"
 	v1 "github.com/choria-io/go-choria/protocol/v1"
-	"github.com/golang-jwt/jwt"
 	"github.com/tidwall/gjson"
 )
 
@@ -52,12 +49,12 @@ type BasicJWT struct {
 	pubkey string
 	auth   authorizers.Authorizer
 	audit  []auditors.Auditor
-	fw     *choria.Framework
+	fw     inter.Framework
 	log    *logrus.Entry
 }
 
 // New creates a new instance of the BasicJWT signer
-func New(fw *choria.Framework, c *SignerConfig, site string) (signer *BasicJWT, err error) {
+func New(fw inter.Framework, c *SignerConfig, site string) (signer *BasicJWT, err error) {
 	if c.MaxValidity == "" {
 		return nil, fmt.Errorf("max_validity is required")
 	}
@@ -117,7 +114,7 @@ func (s *BasicJWT) signRequest(req []byte, token string) (bool, []byte, error) {
 		return false, nil, fmt.Errorf("invalid request: %s", err)
 	}
 
-	_, claims, err := s.parseJWT(token)
+	claims, err := s.parseJWT(token)
 	if err != nil {
 		s.auditRequest(auditors.Deny, request)
 		return false, nil, fmt.Errorf("invalid token: %s", err)
@@ -187,10 +184,10 @@ func (s *BasicJWT) auditRequest(action auditors.Action, request protocol.Request
 }
 
 // sets the caller
-func (s *BasicJWT) setCaller(req protocol.Request, claims jwt.MapClaims) error {
-	caller, err := s.caller(claims)
-	if err != nil {
-		return errors.Wrap(err, "could not set caller")
+func (s *BasicJWT) setCaller(req protocol.Request, claims *tokens.ClientIDClaims) error {
+	caller := claims.CallerID
+	if caller == "" {
+		return fmt.Errorf("no caller received in claims")
 	}
 
 	caller = strings.Replace(caller, "@", "_", -1)
@@ -201,80 +198,32 @@ func (s *BasicJWT) setCaller(req protocol.Request, claims jwt.MapClaims) error {
 	return nil
 }
 
-func (s *BasicJWT) caller(claims jwt.MapClaims) (caller string, err error) {
-	caller, ok := claims["callerid"].(string)
-	if !ok {
-		return "", fmt.Errorf("invalid callerid in claims")
+func (s *BasicJWT) parseJWT(req string) (claims *tokens.ClientIDClaims, err error) {
+	claims, err = tokens.ParseClientIDTokenWithKeyfile(req, s.pubkey, true)
+	if err != nil {
+		signers.InvalidTokenCtr.WithLabelValues(s.site, "basicjwt").Inc()
+		return nil, err
 	}
 
-	return caller, nil
+	if !verifyExp(claims, s.maxExp) {
+		signers.InvalidTokenCtr.WithLabelValues(s.site, "basicjwt").Inc()
+		return nil, fmt.Errorf("invalid claims: expiry is not set or it is too far in the future")
+	}
+
+	return claims, nil
 }
 
-func (s *BasicJWT) signKey() (*rsa.PublicKey, error) {
-	certBytes, err := ioutil.ReadFile(s.pubkey)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not read")
-	}
-
-	signKey, err := jwt.ParseRSAPublicKeyFromPEM(certBytes)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not parse")
-	}
-
-	return signKey, nil
-}
-
-func (s *BasicJWT) parseJWT(req string) (token *jwt.Token, claims jwt.MapClaims, err error) {
-	signKey, err := s.signKey()
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "could not read verifying key %s", s.pubkey)
-	}
-
-	token, err = jwt.Parse(req, func(token *jwt.Token) (interface{}, error) {
-		return signKey, nil
-	})
-	if err != nil {
-		signers.InvalidTokenCtr.WithLabelValues(s.site, "basicjwt").Inc()
-		return nil, nil, err
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		signers.InvalidTokenCtr.WithLabelValues(s.site, "basicjwt").Inc()
-		return nil, nil, fmt.Errorf("invalid claims body received")
-	}
-
-	err = claims.Valid()
-	if err != nil {
-		signers.InvalidTokenCtr.WithLabelValues(s.site, "basicjwt").Inc()
-		return nil, nil, fmt.Errorf("invalid claims: %s", err)
-	}
-
-	if !verifyExp(claims, jwt.TimeFunc().Add(s.maxExp)) {
-		signers.InvalidTokenCtr.WithLabelValues(s.site, "basicjwt").Inc()
-		return nil, nil, fmt.Errorf("invalid claims: expiry is not set or it is too far in the future")
-	}
-
-	return token, claims, nil
-}
-
-func verifyExp(claims jwt.MapClaims, maxAge time.Time) bool {
-	claimExp := int64(0)
-
-	switch exp := claims["exp"].(type) {
-	case float64:
-		claimExp = int64(exp)
-	case json.Number:
-		claimExp, _ = exp.Int64()
-	default:
+func verifyExp(claims *tokens.ClientIDClaims, maxAge time.Duration) bool {
+	if claims.ExpiresAt == nil {
 		return false
 	}
 
-	if claimExp == 0 {
+	exp := claims.ExpiresAt.Time
+	if exp.IsZero() {
 		return false
 	}
 
-	if claimExp > maxAge.Unix() {
+	if time.Until(exp) > maxAge {
 		return false
 	}
 

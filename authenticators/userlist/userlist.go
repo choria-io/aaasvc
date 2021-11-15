@@ -6,7 +6,6 @@
 package userlist
 
 import (
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -16,7 +15,7 @@ import (
 
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/authenticators"
-	"github.com/golang-jwt/jwt"
+	"github.com/choria-io/go-choria/tokens"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -39,6 +38,8 @@ type Authenticator struct {
 	userFileMtime time.Time
 	sync.Mutex
 }
+
+const issuer = "Choria Userlist Authenticator"
 
 // New creates an instance of the authenticator
 func New(c *AuthenticatorConfig, log *logrus.Entry, site string) (a *Authenticator, err error) {
@@ -94,23 +95,6 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 		return
 	}
 
-	cid := fmt.Sprintf("up=%s", req.Username)
-	claims := map[string]interface{}{
-		"exp":      time.Now().UTC().Add(a.validity).Unix(),
-		"nbf":      time.Now().UTC().Add(-1 * time.Minute).Unix(),
-		"iat":      time.Now().UTC().Unix(),
-		"iss":      "Choria Userlist Authenticator",
-		"callerid": cid,
-		"sub":      cid,
-		"purpose":  "choria_client_id",
-		"agents":   user.ACLs,
-		"ou":       "choria",
-	}
-
-	if user.Organization != "" {
-		claims["ou"] = user.Organization
-	}
-
 	policy, err := user.OpenPolicy()
 	if err != nil {
 		a.log.Warnf("Reading OPA policy for user %s failed: %s", req.Username, err)
@@ -118,24 +102,15 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 		return
 	}
 
-	if len(user.Properties) > 0 {
-		claims["user_properties"] = user.Properties
-	}
-
-	if policy != "" {
-		claims["opa_policy"] = policy
-	}
-
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS512"), jwt.MapClaims(claims))
-
-	signKey, err := a.signKey()
+	cid := fmt.Sprintf("up=%s", req.Username)
+	claims, err := tokens.NewClientIDClaims(cid, user.ACLs, user.Organization, user.Properties, policy, issuer, a.validity, user.Permissions)
 	if err != nil {
-		a.log.Errorf("Could not load signing key during login request for user %s: %s: %s", req.Username, a.c.SigningKey, err)
-		resp.Error = "Could not load signing key from disk"
+		a.log.Warnf("Creating claims for user %s failed: %s", req.Username, err)
+		resp.Error = "Login failed"
 		return
 	}
 
-	signed, err := token.SignedString(signKey)
+	signed, err := tokens.SignTokenWithKeyFile(claims, a.c.SigningKey)
 	if err != nil {
 		a.log.Errorf("Could not sign JWT for %s: %s", req.Username, err)
 		resp.Error = "Could not sign JWT token"
@@ -147,7 +122,6 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 	a.log.Infof("Logged in user %s", req.Username)
 
 	return resp
-
 }
 
 func (a *Authenticator) reloadUserFile() (read bool, err error) {
@@ -191,18 +165,4 @@ func (a *Authenticator) getUser(u string) (usr *User, err error) {
 	}
 
 	return nil, nil
-}
-
-func (a *Authenticator) signKey() (*rsa.PrivateKey, error) {
-	pkeyBytes, err := ioutil.ReadFile(a.c.SigningKey)
-	if err != nil {
-		return nil, fmt.Errorf("could not read: %s", err)
-	}
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(pkeyBytes)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse: %s", err)
-	}
-
-	return signKey, nil
 }

@@ -34,7 +34,7 @@ import (
 	"github.com/choria-io/go-choria/opa"
 	"github.com/choria-io/go-choria/protocol"
 	"github.com/choria-io/go-choria/providers/agent/mcorpc"
-	"github.com/golang-jwt/jwt"
+	"github.com/choria-io/go-choria/tokens"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/types"
@@ -58,7 +58,7 @@ func New(log *logrus.Entry, site string) *Authorizer {
 }
 
 // Authorize implements authorizers.Authorizer
-func (a *Authorizer) Authorize(req protocol.Request, claims jwt.MapClaims) (allowed bool, err error) {
+func (a *Authorizer) Authorize(req protocol.Request, claims *tokens.ClientIDClaims) (allowed bool, err error) {
 	allowed, action, err := a.authorize(req, claims)
 	if err != nil {
 		authorizers.ErrCtr.WithLabelValues(a.site, "opa").Inc()
@@ -73,7 +73,7 @@ func (a *Authorizer) Authorize(req protocol.Request, claims jwt.MapClaims) (allo
 	return allowed, err
 }
 
-func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allowed bool, action string, err error) {
+func (a *Authorizer) authorize(req protocol.Request, claims *tokens.ClientIDClaims) (allowed bool, action string, err error) {
 	if req.Agent() == "discovery" {
 		a.log.Debugf("Allowing discovery request %s from %s@%s", req.RequestID(), req.CallerID(), req.SenderID())
 		return true, req.Agent(), nil
@@ -85,11 +85,6 @@ func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allo
 		return false, req.Agent(), fmt.Errorf("invalid claims body received: %s", err)
 	}
 
-	_, ok := claims["opa_policy"]
-	if !ok {
-		return false, req.Agent(), fmt.Errorf("no 'opa_policy' defined in the claims")
-	}
-
 	rpcreq := &mcorpc.Request{}
 	err = json.Unmarshal([]byte(req.Message()), rpcreq)
 	if err != nil {
@@ -97,16 +92,11 @@ func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allo
 		return false, req.Agent(), err
 	}
 
-	policy, ok := claims["opa_policy"].(string)
-	if !ok {
-		return false, req.Agent(), fmt.Errorf("'opa_policy' claim is not a string")
-	}
-
-	if policy == "" {
+	if claims.OPAPolicy == "" {
 		return false, req.Agent(), fmt.Errorf("'opa_policy' claim is an empty string, denying request")
 	}
 
-	allowed, err = a.evaluatePolicy(rpcreq, policy, claims)
+	allowed, err = a.evaluatePolicy(rpcreq, claims.OPAPolicy, claims)
 	if err != nil {
 		return false, req.Agent(), fmt.Errorf("OPA policy evaluation failed: %s", err)
 	}
@@ -120,7 +110,7 @@ func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allo
 	return allowed, fmt.Sprintf("%s.%s", rpcreq.Agent, rpcreq.Action), nil
 }
 
-func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claims jwt.MapClaims) (allowed bool, err error) {
+func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claims *tokens.ClientIDClaims) (allowed bool, err error) {
 	if policy == "" {
 		return false, fmt.Errorf("invalid policy given")
 	}
@@ -148,7 +138,12 @@ func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claim
 	}
 
 	a.log.Infof("Evaluating rego policy found in JWT claim for request %s", rpcreq.RequestID)
-	allowed, err = evaluator.Evaluate(context.Background(), a.regoInputs(rpcreq, data, claims))
+	inputs, err := a.regoInputs(rpcreq, data, claims)
+	if err != nil {
+		return false, err
+	}
+
+	allowed, err = evaluator.Evaluate(context.Background(), inputs)
 	if err != nil {
 		return false, fmt.Errorf("could not evaluate policy for request %s: %s", rpcreq.RequestID, err)
 	}
@@ -156,7 +151,18 @@ func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claim
 	return allowed, nil
 }
 
-func (a *Authorizer) regoInputs(req *mcorpc.Request, data map[string]interface{}, claims jwt.MapClaims) map[string]interface{} {
+func (a *Authorizer) regoInputs(req *mcorpc.Request, data map[string]interface{}, claims *tokens.ClientIDClaims) (map[string]interface{}, error) {
+	j, err := json.Marshal(claims)
+	if err != nil {
+		return nil, fmt.Errorf("could not JSON encode claims")
+	}
+
+	cdat := new(map[string]interface{})
+	err = json.Unmarshal(j, &cdat)
+	if err != nil {
+		return nil, fmt.Errorf("could not JSON decode claims")
+	}
+
 	return map[string]interface{}{
 		"agent":      req.Agent,
 		"action":     req.Action,
@@ -166,8 +172,8 @@ func (a *Authorizer) regoInputs(req *mcorpc.Request, data map[string]interface{}
 		"ttl":        req.TTL,
 		"time":       req.Time,
 		"site":       a.site,
-		"claims":     map[string]interface{}(claims),
-	}
+		"claims":     cdat,
+	}, nil
 }
 
 func (a *Authorizer) regoFunctionsMap(req *mcorpc.Request) []func(r *rego.Rego) {

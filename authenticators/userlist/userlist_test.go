@@ -1,14 +1,13 @@
 package userlist
 
 import (
-	"crypto/rsa"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
-	"github.com/golang-jwt/jwt"
+	"github.com/choria-io/go-choria/tokens"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
@@ -128,40 +127,16 @@ var _ = Describe("Authenticators/Userlist", func() {
 			res := auth.Login(req)
 			Expect(res.Error).To(Equal(""))
 
-			pub, err := signKey()
+			claims, err := tokens.ParseClientIDTokenWithKeyfile(res.Token, "testdata/cert.pem", true)
 			Expect(err).ToNot(HaveOccurred())
 
-			token, err := jwt.Parse(res.Token, func(token *jwt.Token) (interface{}, error) {
-				return pub, nil
-			})
-			Expect(err).ToNot(HaveOccurred())
-
-			claims, ok := token.Claims.(jwt.MapClaims)
-			Expect(ok).To(BeTrue())
-
-			caller, ok := claims["callerid"].(string)
-			Expect(ok).To(BeTrue())
-			Expect(caller).To(Equal("up=bob"))
-
-			agents, ok := claims["agents"].([]interface{})
-			Expect(ok).To(BeTrue())
-			Expect(agents).To(HaveLen(1))
-			Expect(agents[0].(string)).To(Equal("*"))
-
-			policy, ok := claims["opa_policy"].(string)
-			Expect(ok).To(BeTrue())
-			Expect(policy).To(Equal(readFixture("testdata/test.rego")))
-
-			purpose, ok := claims["purpose"].(string)
-			Expect(ok).To(BeTrue())
-			Expect(purpose).To(Equal("choria_client_id"))
-
-			props, ok := claims["user_properties"].(map[string]interface{})
-			Expect(ok).To(BeTrue())
-
-			group, ok := props["group"].(string)
-			Expect(ok).To(BeTrue())
-			Expect(group).To(Equal("admins"))
+			Expect(claims.CallerID).To(Equal("up=bob"))
+			Expect(claims.AllowedAgents).To(Equal([]string{"*"}))
+			Expect(claims.OPAPolicy).To(Equal(readFixture("testdata/test.rego")))
+			Expect(claims.Purpose).To(Equal(tokens.ClientIDPurpose))
+			Expect(claims.UserProperties).To(Equal(map[string]string{
+				"group": "admins",
+			}))
 		})
 	})
 })
@@ -173,18 +148,4 @@ func readFixture(f string) string {
 	}
 
 	return string(c)
-}
-
-func signKey() (*rsa.PublicKey, error) {
-	certBytes, err := ioutil.ReadFile("testdata/cert.pem")
-	if err != nil {
-		return nil, err
-	}
-
-	signKey, err := jwt.ParseRSAPublicKeyFromPEM(certBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return signKey, nil
 }

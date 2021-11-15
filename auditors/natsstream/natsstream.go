@@ -12,14 +12,14 @@ import (
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/auditors/notification"
+	"github.com/choria-io/go-choria/inter"
 	"github.com/choria-io/go-choria/protocol"
 	"github.com/choria-io/go-choria/srvcache"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/go-choria/backoff"
-	"github.com/choria-io/go-choria/choria"
-	stan "github.com/nats-io/stan.go"
+	"github.com/nats-io/stan.go"
 )
 
 // AuditorConfig configures the NATS Stream auditor
@@ -39,14 +39,14 @@ type NatsStream struct {
 	conf    *AuditorConfig
 	servers func() (srvcache.Servers, error)
 	sc      stan.Conn
-	fw      *choria.Framework
+	fw      inter.Framework
 	log     *logrus.Entry
 	outbox  chan interface{}
 	site    string
 }
 
 // New creates a new instance of the NATS Stream auditor
-func New(fw *choria.Framework, c *AuditorConfig, site string) (auditor *NatsStream, err error) {
+func New(fw inter.Framework, c *AuditorConfig, site string) (auditor *NatsStream, err error) {
 	auditor = &NatsStream{
 		conf:    c,
 		fw:      fw,

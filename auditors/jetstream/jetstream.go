@@ -12,7 +12,6 @@ import (
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/auditors/notification"
-	"github.com/choria-io/go-choria/choria"
 	"github.com/choria-io/go-choria/inter"
 	"github.com/choria-io/go-choria/protocol"
 	"github.com/choria-io/go-choria/srvcache"
@@ -33,14 +32,14 @@ type JetStream struct {
 	conf    *AuditorConfig
 	servers func() (srvcache.Servers, error)
 	nc      inter.Connector
-	fw      *choria.Framework
+	fw      inter.Framework
 	log     *logrus.Entry
 	outbox  chan interface{}
 	site    string
 }
 
 // New creates a new instance of the JetStream auditor
-func New(fw *choria.Framework, c *AuditorConfig, site string) (auditor *JetStream, err error) {
+func New(fw inter.Framework, c *AuditorConfig, site string) (auditor *JetStream, err error) {
 	ctx := context.Background()
 
 	auditor = &JetStream{

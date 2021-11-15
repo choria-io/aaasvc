@@ -26,7 +26,7 @@ import (
 	"github.com/choria-io/aaasvc/authorizers"
 	"github.com/choria-io/go-choria/protocol"
 	"github.com/choria-io/go-choria/providers/agent/mcorpc"
-	"github.com/golang-jwt/jwt"
+	"github.com/choria-io/go-choria/tokens"
 	"github.com/sirupsen/logrus"
 )
 
@@ -45,7 +45,7 @@ func New(log *logrus.Entry, site string) *Authorizer {
 }
 
 // Authorize implements authorizers.Authorizer
-func (a *Authorizer) Authorize(req protocol.Request, claims jwt.MapClaims) (allowed bool, err error) {
+func (a *Authorizer) Authorize(req protocol.Request, claims *tokens.ClientIDClaims) (allowed bool, err error) {
 	allowed, action, err := a.authorize(req, claims)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (a *Authorizer) Authorize(req protocol.Request, claims jwt.MapClaims) (allo
 	return allowed, err
 }
 
-func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allowed bool, action string, err error) {
+func (a *Authorizer) authorize(req protocol.Request, claims *tokens.ClientIDClaims) (allowed bool, action string, err error) {
 	if req.Agent() == "discovery" {
 		a.log.Debugf("Allowing discovery request %s from %s@%s", req.RequestID(), req.CallerID(), req.SenderID())
 		return true, req.Agent(), nil
@@ -94,26 +94,18 @@ func (a *Authorizer) authorize(req protocol.Request, claims jwt.MapClaims) (allo
 	return ok, fmt.Sprintf("%s.%s", rpcreq.Agent, rpcreq.Action), err
 }
 
-func validateAction(agent string, action string, claims jwt.MapClaims, log *logrus.Entry) (ok bool, err error) {
-	agents, ok := claims["agents"].([]interface{})
-	if !ok {
-		return false, fmt.Errorf("invalid agent claims")
-	}
+func validateAction(agent string, action string, claims *tokens.ClientIDClaims, log *logrus.Entry) (ok bool, err error) {
+	agents := claims.AllowedAgents
 
 	for _, allow := range agents {
-		claim, ok := allow.(string)
-		if !ok {
-			return false, fmt.Errorf("invalid agent claim found in token %s", allow)
-		}
-
 		// all things are allowed
-		if claim == "*" {
+		if allow == "*" {
 			return true, nil
 		}
 
-		parts := strings.Split(claim, ".")
+		parts := strings.Split(allow, ".")
 		if len(parts) != 2 {
-			return false, fmt.Errorf("invalid agent claim found in token %s", claim)
+			return false, fmt.Errorf("invalid agent claim found in token %s", allow)
 		}
 
 		// its a claim for a different agent so pass, no need to check it here

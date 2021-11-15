@@ -10,7 +10,7 @@ import (
 	reflect "reflect"
 
 	protocol "github.com/choria-io/go-choria/protocol"
-	jwt "github.com/golang-jwt/jwt"
+	tokens "github.com/choria-io/go-choria/tokens"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -38,7 +38,7 @@ func (m *MockAuthorizer) EXPECT() *MockAuthorizerMockRecorder {
 }
 
 // Authorize mocks base method.
-func (m *MockAuthorizer) Authorize(arg0 protocol.Request, arg1 jwt.MapClaims) (bool, error) {
+func (m *MockAuthorizer) Authorize(arg0 protocol.Request, arg1 *tokens.ClientIDClaims) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Authorize", arg0, arg1)
 	ret0, _ := ret[0].(bool)

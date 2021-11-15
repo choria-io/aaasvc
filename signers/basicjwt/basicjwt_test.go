@@ -1,15 +1,14 @@
 package basicjwt
 
 import (
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/choria-io/go-choria/protocol"
 	v1 "github.com/choria-io/go-choria/protocol/v1"
+	"github.com/choria-io/go-choria/tokens"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/auditors"
@@ -17,7 +16,6 @@ import (
 	"github.com/golang/mock/gomock"
 
 	cconf "github.com/choria-io/go-choria/config"
-	"github.com/golang-jwt/jwt"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -57,7 +55,7 @@ var _ = Describe("BasicJWT", func() {
 		signer.SetAuditors(auditor)
 
 		protocol.Secure = "false"
-		token = genToken(time.Now().UTC().Add(time.Hour).Unix())
+		token = genToken(time.Hour)
 		req = &models.SignRequest{Token: token}
 	})
 
@@ -94,7 +92,7 @@ var _ = Describe("BasicJWT", func() {
 		})
 
 		It("Should handle JWT that expire too far in the future", func() {
-			req.Token = genToken(time.Now().UTC().Add(10 * time.Hour).Unix())
+			req.Token = genToken(10 * time.Hour)
 			req.Request = []byte(rpcreqstr)
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
@@ -145,37 +143,10 @@ var _ = Describe("BasicJWT", func() {
 	})
 })
 
-func genToken(exp int64) string {
-	claims := jwt.MapClaims{
-		"agents":   []string{"*"},
-		"callerid": "ginkgo=test@example.net",
-	}
-
-	if exp > 0 {
-		claims["exp"] = exp
-	}
-
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS512"), claims)
-
-	signKey, err := signKey("testdata/key.pem")
+func genToken(exp time.Duration) string {
+	claims, err := tokens.NewClientIDClaims("ginkgo=test@example.net", []string{"*"}, "choria", nil, "", "", exp, nil)
 	Expect(err).ToNot(HaveOccurred())
-
-	signed, err := token.SignedString(signKey)
+	signed, err := tokens.SignTokenWithKeyFile(claims, "testdata/key.pem")
 	Expect(err).ToNot(HaveOccurred())
-
 	return signed
-}
-
-func signKey(key string) (*rsa.PrivateKey, error) {
-	pkeyBytes, err := ioutil.ReadFile(key)
-	if err != nil {
-		return nil, err
-	}
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(pkeyBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return signKey, nil
 }
