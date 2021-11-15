@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"time"
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/authenticators"
 	"github.com/choria-io/aaasvc/authenticators/okta"
 	"github.com/choria-io/aaasvc/authenticators/userlist"
-	"github.com/golang-jwt/jwt"
+	"github.com/choria-io/go-choria/inter"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/aaasvc/auditors/jetstream"
@@ -97,7 +96,7 @@ type Config struct {
 	// TLSCA is the CA used to create the listening certificate and key
 	TLSCA string `json:"tls_ca"`
 
-	fw            *choria.Framework
+	fw            inter.Framework
 	audit         []auditors.Auditor
 	authenticator authenticators.Authenticator
 	signer        signers.Signer
@@ -129,6 +128,7 @@ func New(file string) (conf *Config, err error) {
 	ccfg.LogFile = conf.LogFile
 	ccfg.LogLevel = conf.LogLevel
 	ccfg.RPCAuthorization = false
+
 	// by definition these are clients who do not have security credentials, verification is based on the JWT
 	ccfg.DisableSecurityProviderVerify = true
 
@@ -147,14 +147,11 @@ func New(file string) (conf *Config, err error) {
 		return nil, errors.Wrapf(err, "could not configure %s signer", conf.SignerType)
 	}
 
-	// all JWT operations should happen in UTC
-	jwt.TimeFunc = func() time.Time { return time.Now().UTC() }
-
 	return conf, nil
 }
 
 // Choria provides access to the configured choria framework
-func (c *Config) Choria() *choria.Framework {
+func (c *Config) Choria() inter.Framework {
 	return c.fw
 }
 

@@ -3,7 +3,6 @@ package okta
 import (
 	"bytes"
 	"context"
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,7 +12,7 @@ import (
 
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/authenticators"
-	"github.com/golang-jwt/jwt"
+	"github.com/choria-io/go-choria/tokens"
 	"github.com/okta/okta-sdk-golang/v2/okta"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -48,6 +47,8 @@ type tokenResponse struct {
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description"`
 }
+
+const issuer = "Choria Okta Authenticator"
 
 // New creates a new Okta authenticator
 func New(c *AuthenticatorConfig, log *logrus.Entry, site string) (a *Authenticator, err error) {
@@ -112,24 +113,14 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 	}
 
 	cid := fmt.Sprintf("okta=%s", req.Username)
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("RS512"), jwt.MapClaims{
-		"exp":      time.Now().UTC().Add(a.validity).Unix(),
-		"nbf":      time.Now().UTC().Add(-1 * time.Minute).Unix(),
-		"iat":      time.Now().UTC().Unix(),
-		"iss":      "Choria Okta Authenticator",
-		"callerid": cid,
-		"sub":      cid,
-		"purpose":  "choria_client_id",
-		"agents":   allowedActions,
-	})
-
-	signKey, err := a.signKey()
+	claims, err := tokens.NewClientIDClaims(cid, allowedActions, "", nil, "", issuer, a.validity, nil)
 	if err != nil {
-		resp.Error = fmt.Sprintf("Could not load signing key %s: %s", a.c.SigningKey, err)
+		a.log.Warnf("Creating claims for user %s failed: %s", req.Username, err)
+		resp.Error = "Login failed"
 		return
 	}
 
-	signed, err := token.SignedString(signKey)
+	signed, err := tokens.SignTokenWithKeyFile(claims, a.c.SigningKey)
 	if err != nil {
 		resp.Error = fmt.Sprintf("Could not sign JWT: %s", err)
 		return
@@ -138,20 +129,6 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 	resp.Token = signed
 
 	return resp
-}
-
-func (a *Authenticator) signKey() (*rsa.PrivateKey, error) {
-	pkeyBytes, err := ioutil.ReadFile(a.c.SigningKey)
-	if err != nil {
-		return nil, fmt.Errorf("could not read: %s", err)
-	}
-
-	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(pkeyBytes)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse: %s", err)
-	}
-
-	return signKey, nil
 }
 
 func (a *Authenticator) login(user string, password string) (resp *tokenResponse, ok bool, err error) {

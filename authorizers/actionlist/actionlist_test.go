@@ -4,10 +4,10 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/choria-io/go-choria/tokens"
 	"github.com/sirupsen/logrus"
 
 	v1 "github.com/choria-io/go-choria/protocol/v1"
-	"github.com/golang-jwt/jwt"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,20 +19,22 @@ func TestWithGinkgo(t *testing.T) {
 }
 
 var _ = Describe("Authorizers/Actionlist", func() {
-	var auth Authorizer
-	var log *logrus.Entry
+	var (
+		auth   Authorizer
+		log    *logrus.Entry
+		claims *tokens.ClientIDClaims
+	)
 
 	BeforeEach(func() {
 		logger := logrus.New()
 		logger.Out = ioutil.Discard
 		log = logrus.NewEntry(logger)
-
+		claims = &tokens.ClientIDClaims{}
 		auth = Authorizer{log: log, site: "ginkgo"}
 	})
 
 	Describe("Authorize", func() {
 		It("Should always allow discovery agent", func() {
-			claims := jwt.MapClaims{}
 			req, err := v1.NewRequest("discovery", "ginkgo.example.net", "choria=ginkgo", 60, "123454", "mcollective")
 			Expect(err).ToNot(HaveOccurred())
 
@@ -42,10 +44,7 @@ var _ = Describe("Authorizers/Actionlist", func() {
 		})
 
 		It("Should fail disallowed requests", func() {
-			claims := jwt.MapClaims{
-				"agents": []interface{}{"nothing.*"},
-			}
-
+			claims.AllowedAgents = []string{"nothing.*"}
 			req, err := v1.NewRequest("rpcutil", "ginkgo.example.net", "choria=ginkgo", 60, "123454", "mcollective")
 			Expect(err).ToNot(HaveOccurred())
 			req.SetMessage(`{"action":"ping", "agent":"rpcutil"}`)
@@ -57,31 +56,15 @@ var _ = Describe("Authorizers/Actionlist", func() {
 	})
 
 	Describe("validateAction", func() {
-		It("Should detect invalid agent claims", func() {
-			claims := jwt.MapClaims{
-				"agents": "invalid",
-			}
-
-			ok, err := validateAction("agent", "action", claims, log)
-			Expect(err).To(MatchError("invalid agent claims"))
-			Expect(ok).To(BeFalse())
-		})
-
 		It("Should support '*' agents", func() {
-			claims := jwt.MapClaims{
-				"agents": []interface{}{"*"},
-			}
-
+			claims.AllowedAgents = []string{"*"}
 			ok, err := validateAction("agent", "action", claims, log)
 			Expect(ok).To(BeTrue())
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("Should support action wildcards", func() {
-			claims := jwt.MapClaims{
-				"agents": []interface{}{"rpcutil.*"},
-			}
-
+			claims.AllowedAgents = []string{"rpcutil.*"}
 			ok, err := validateAction("rpcutil", "action", claims, log)
 			Expect(ok).To(BeTrue())
 			Expect(err).ToNot(HaveOccurred())
@@ -92,10 +75,7 @@ var _ = Describe("Authorizers/Actionlist", func() {
 		})
 
 		It("Should support specific agent.action", func() {
-			claims := jwt.MapClaims{
-				"agents": []interface{}{"rpcutil.ping"},
-			}
-
+			claims.AllowedAgents = []string{"rpcutil.ping"}
 			ok, err := validateAction("rpcutil", "ping", claims, log)
 			Expect(ok).To(BeTrue())
 			Expect(err).ToNot(HaveOccurred())

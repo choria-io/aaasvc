@@ -3,6 +3,8 @@ package userlist
 import (
 	"io/ioutil"
 	"sync"
+
+	"github.com/choria-io/go-choria/tokens"
 )
 
 // User is a choria user
@@ -26,8 +28,12 @@ type User struct {
 	OPAPolicyFile string `json:"opa_policy_file"`
 
 	// Properties are free form additional information to add about a user, this can be
-	// referenced later in an authorizer like the Open Policy one
+	// referenced later in a signer or other systems, mostly unused by core choria features atm
 	Properties map[string]string `json:"properties"`
+
+	// Permissions are additional abilities assigned to the user over and above basic Choria access
+	// use these to allow Streams admin using JWT auth for example
+	Permissions *tokens.ClientPermissions `json:"broker_permissions"`
 
 	sync.Mutex
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/choria-io/go-choria/protocol"
 	"github.com/choria-io/go-choria/providers/agent/mcorpc"
-	"github.com/golang-jwt/jwt"
+	"github.com/choria-io/go-choria/tokens"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
@@ -24,7 +24,7 @@ var _ = Describe("Authorizers/OPA", func() {
 	var auth *Authorizer
 	var log *logrus.Entry
 	var req *mcorpc.Request
-	var claims jwt.MapClaims
+	var claims *tokens.ClientIDClaims
 
 	BeforeEach(func() {
 		logger := logrus.New()
@@ -32,6 +32,7 @@ var _ = Describe("Authorizers/OPA", func() {
 		logger.Level = logrus.DebugLevel
 		log = logrus.NewEntry(logger)
 		auth = &Authorizer{log: log, site: "ginkgo"}
+		claims = &tokens.ClientIDClaims{}
 
 		req = &mcorpc.Request{
 			Agent:      "myco",
@@ -50,15 +51,14 @@ var _ = Describe("Authorizers/OPA", func() {
 		req.Filter.AddIdentityFilter("some.node")
 		req.Filter.AddFactFilter("country", "==", "mt")
 
+		claims.CallerID = "up=bob"
+		claims.UserProperties = map[string]string{
+			"group": "admins",
+		}
+
 		for r := 1; r <= 5; r++ {
 			policy := readFixture(fmt.Sprintf("testdata/scenario%d.rego", r))
-			claims = map[string]interface{}{
-				"opa_policy": policy,
-				"callerid":   "up=bob",
-				"user_properties": map[string]interface{}{
-					"group": "admins",
-				},
-			}
+			claims.OPAPolicy = policy
 
 			allowed, err := auth.evaluatePolicy(req, policy, claims)
 			Expect(err).ToNot(HaveOccurred())
@@ -68,12 +68,10 @@ var _ = Describe("Authorizers/OPA", func() {
 
 	It("Should fail on all common scenarios", func() {
 		policy := readFixture("testdata/scenario5.rego")
-		claims = map[string]interface{}{
-			"opa_policy": policy,
-			"callerid":   "up=bob",
-			"user_properties": map[string]interface{}{
-				"group": "admins",
-			},
+		claims.OPAPolicy = policy
+		claims.CallerID = "up=bob"
+		claims.UserProperties = map[string]string{
+			"group": "admins",
 		}
 
 		req.Filter.AddClassFilter("apache")
