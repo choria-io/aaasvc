@@ -33,7 +33,6 @@ This is under active development, see the Issues list for current outstanding it
 ## Features
 
  * Authentication
-   * [Okta identity cloud](https://okta.com/)
    * Static configured users with support for basic agent+action ACLs as well as Open Policy Agent policies
    * Capable of running centrally separate from signers
  * Authorization
@@ -56,7 +55,7 @@ This is under active development, see the Issues list for current outstanding it
 
 Review the below Features Reference section and pick the authentication, signer and auditing systems that suits your needs.
 
-You can choose to run the login service and the signer service in different locations - you might have a central login service with access to Okta but regional DCs only signing requests and never needing access to Okta.
+You can choose to run the login service and the signer service in different locations - you might have a central login service with access to your SSO but regional DCs only signing requests and never needing access to SSO.
 
 Additionally you need:
 
@@ -140,7 +139,6 @@ The signer uses a JSON file for configuration and lets you compose the system as
 |basicjwt_signer|Configuration for the Basic JWT signer|
 |logfile_auditor|Configuration for the Logfile Auditor|
 |natsstream_auditor|Configuration for the NATS Stream auditor|
-|okta_authenticator|Configuration for the Okta authenticator|
 |userlist_authenticator|Configuration for the User List authenticator|
 
 The Choria configuration file just need to configure the security system with the location of the privileged certificate:
@@ -177,7 +175,7 @@ You should get a token back that you can decode using [jwt.io](https://jwt.io), 
     "*",
     "puppet.*"
   ],
-  "callerid": "okta=rip@choria.io",
+  "callerid": "up=rip@choria.io",
   "exp": 1547742762
 }
 ```
@@ -286,32 +284,7 @@ The `broker_permissions` key corresponds with `tokens.ClientPermissions` in the 
 
 #### Okta
 
-[Okta](https://www.okta.com/) is an identity cloud providing users, authentication and group membership as a service.  They have a great free tier suitable for many small sites and so is a good first step towards moving your users to a managed service.
-
-This tool can authenticate users against Okta and retrieve the groups they belong to, based on those groups access is granted to certain Choria agents and actions.
-
-Once you signed up for Okta and set up a application for Choria you'll get endpoints, client id, client secret and api token, put this in the configuration here.
-
-```json
-{
-  "authenticator": "okta",
-  "okta_authenticator": {
-    "client_id": "xxx",
-    "client_secret": "xxx",
-    "api_token": "xxx",
-    "endpoint": "https://xxx.oktapreview.com",
-    "validity": "1h",
-    "signing_key": "/etc/choria/signer/signing_key.pem",
-    "acls": {
-      "Everyone": ["rpcutil.ping"],
-      "ChoriaAdmins": ["*"],
-      "ChoriaPuppetAdmins": ["puppet.*"]
-    }
-  }
-}
-```
-
-Here we configure `acls` based on Okta groups - all users can `rpcutil ping`, there are Puppet admins with appropriate rights and fleet wide admins capable of managing anything.
+Okta support has been removed in version 0.6.0.
 
 ## Authorization
 
@@ -436,7 +409,7 @@ Signers do not communicate directly with the Authentication service so you can r
 
 ### BasicJWT
 
-The only supported signer today is one that receives JWT tokens as issued by Okta or Userlist authentications, it inspects the request and should the token allow the request it will sign it and audit it.
+The only supported signer today is one that receives JWT tokens as issued by Userlist authentication, it inspects the request and should the token allow the request it will sign it and audit it.
 
 ```json
 {
@@ -475,26 +448,13 @@ You have to arrange for rotation of this log file, each line will be a JSON line
 
 ### NATS Stream
 
+NATS Streaming Server support has been removed in version 0.6.0.
+
+### Choria Streams
+
 If you want to aggregate audit logs from your regional signers back to the central authentication service this is the auditor to use.
 
-It publish structured messages to a NATS Stream topic that you can use the [Choria Stream Replicator](https://github.com/choria-io/stream-replicator) to transport these from your regional DC to central for consumption.
-
-Published messages will match the [io.choria.signer.v1.signature_audit](https://choria.io/schemas/choria/signer/v1/signature_audit.json) JSON Schema.
-
-```json
-{
-  "auditors": ["natsstream"],
-  "natsstream_auditor": {
-    "cluster_id": "test-cluster",
-    "servers": "nats://localhost:4222",
-    "topic": "audit"
-  }
-}
-```
-
-### NATS JetStream
-
-The JetStream auditor is similar to the NATS Stream one but publishes to the upcoming JetStream Streaming Server.
+It publish structured messages to a Choria Streams topic that you can use the [Choria Stream Replicator](https://github.com/choria-io/stream-replicator) to transport these from your regional DC to central for consumption.
 
 Published messages will match the [io.choria.signer.v1.signature_audit](https://choria.io/schemas/choria/signer/v1/signature_audit.json) JSON Schema.
 
@@ -502,6 +462,7 @@ Published messages will match the [io.choria.signer.v1.signature_audit](https://
 {
   "auditors": ["jetstream"],
   "jetstream_auditor": {
+    "cluster_id": "test-cluster",
     "servers": "nats://localhost:4222",
     "topic": "audit"
   }

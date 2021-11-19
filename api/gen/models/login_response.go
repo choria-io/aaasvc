@@ -22,6 +22,9 @@ type LoginResponse struct {
 
 	// The JWT token identifying the user, obtained from /login
 	Token string `json:"token,omitempty"`
+
+	// Details to assist tests
+	Detail string `json:"-"`
 }
 
 // Validate validates this login response

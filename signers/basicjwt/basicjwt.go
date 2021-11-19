@@ -214,6 +214,12 @@ func (s *BasicJWT) parseJWT(req string) (claims *tokens.ClientIDClaims, err erro
 }
 
 func verifyExp(claims *tokens.ClientIDClaims, maxAge time.Duration) bool {
+	// if the special in-jwt flag is set we trust the expires claim without additional
+	// checks for maximum length till expires.
+	if claims.Permissions != nil && claims.Permissions.ExtendedServiceLifetime {
+		return true
+	}
+
 	if claims.ExpiresAt == nil {
 		return false
 	}

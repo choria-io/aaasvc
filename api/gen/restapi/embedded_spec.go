@@ -101,6 +101,18 @@ func init() {
           "description": "The password to log in with",
           "type": "string"
         },
+        "public_key": {
+          "description": "A ED25519 public key in hex encoded format that will be placed in the JWT and used to verify the signature",
+          "type": "string"
+        },
+        "signature": {
+          "description": "A signature made using the ED25519 private key of the time:user:pass string",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "A string holding the numeric unix timestamp",
+          "type": "string"
+        },
         "username": {
           "description": "The username to log in with",
           "type": "string"
@@ -232,6 +244,18 @@ func init() {
       "properties": {
         "password": {
           "description": "The password to log in with",
+          "type": "string"
+        },
+        "public_key": {
+          "description": "A ED25519 public key in hex encoded format that will be placed in the JWT and used to verify the signature",
+          "type": "string"
+        },
+        "signature": {
+          "description": "A signature made using the ED25519 private key of the time:user:pass string",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "A string holding the numeric unix timestamp",
           "type": "string"
         },
         "username": {

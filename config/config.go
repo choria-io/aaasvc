@@ -7,14 +7,12 @@ import (
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/authenticators"
-	"github.com/choria-io/aaasvc/authenticators/okta"
 	"github.com/choria-io/aaasvc/authenticators/userlist"
 	"github.com/choria-io/go-choria/inter"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/aaasvc/auditors/jetstream"
 	"github.com/choria-io/aaasvc/auditors/logfile"
-	"github.com/choria-io/aaasvc/auditors/natsstream"
 	"github.com/choria-io/aaasvc/authorizers/actionlist"
 	"github.com/choria-io/aaasvc/authorizers/opa"
 	"github.com/choria-io/aaasvc/signers"
@@ -45,7 +43,6 @@ type Config struct {
 	// AuditorType is the types of auditor to use, multiple will be called concurrently
 	//
 	// * logfile - logs audit messages to a file, requires LogfileAuditor config
-	// * natsstream - publish audit messages to a NATS Stream
 	// * jetstream - publish audit messages to a NATS JetStream topic
 	AuditorType []string `json:"auditors"`
 
@@ -75,14 +72,8 @@ type Config struct {
 	// LogfileAuditor is configuration for the `logfile` AuditorType
 	LogfileAuditor *logfile.AuditorConfig `json:"logfile_auditor"`
 
-	// NATSStreamAuditor is configuration for the `natsstream` AuditorType
-	NATSStreamAuditor *natsstream.AuditorConfig `json:"natsstream_auditor"`
-
 	// JetStreamAuditor is configuration for the `jetstream` AuditorType
 	JetStreamAuditor *jetstream.AuditorConfig `json:"jetstream_auditor"`
-
-	// OktaAuthenticator is configuration for the `okta` AuthorizerType
-	OktaAuthenticator *okta.AuthenticatorConfig `json:"okta_authenticator"`
 
 	// UserlistsAuthenticator is a configuration for the `userlist` AuthorizerType
 	UserlistsAuthenticator *userlist.AuthenticatorConfig `json:"userlist_authenticator"`
@@ -175,11 +166,7 @@ func configureAuthenticator(conf *Config) error {
 
 	switch conf.AuthenticatorType {
 	case "okta":
-		if conf.OktaAuthenticator == nil {
-			return fmt.Errorf("okta authenticator enabled without a valid configuration")
-		}
-
-		auth, err = okta.New(conf.OktaAuthenticator, conf.fw.Logger("authenticator"), conf.Site)
+		return fmt.Errorf("okta authenticator has been removed")
 
 	case "userlist":
 		if conf.UserlistsAuthenticator == nil {
@@ -224,14 +211,8 @@ func newAuditors(conf *Config) (err error) {
 			}
 
 		case "natsstream":
-			if conf.NATSStreamAuditor == nil {
-				return fmt.Errorf("natstream auditor enabled without a valid configuration")
-			}
+			return fmt.Errorf("NATS Streaming Server auditor has been removed")
 
-			auditor, err = natsstream.New(conf.Choria(), conf.NATSStreamAuditor, conf.Site)
-			if err != nil {
-				return fmt.Errorf("natsstream auditor failed: %w", err)
-			}
 		case "jetstream":
 			if conf.JetStreamAuditor == nil {
 				return fmt.Errorf("jetstream auditor enabled without a valid configuration")

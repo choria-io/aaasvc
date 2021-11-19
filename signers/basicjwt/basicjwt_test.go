@@ -9,6 +9,7 @@ import (
 	"github.com/choria-io/go-choria/protocol"
 	v1 "github.com/choria-io/go-choria/protocol/v1"
 	"github.com/choria-io/go-choria/tokens"
+	"golang.org/x/crypto/ed25519"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/auditors"
@@ -35,6 +36,7 @@ var _ = Describe("BasicJWT", func() {
 		auditor    *MockAuditor
 		authorizer *MockAuthorizer
 		req        *models.SignRequest
+		pubK       ed25519.PublicKey
 		token      string
 	)
 
@@ -42,6 +44,9 @@ var _ = Describe("BasicJWT", func() {
 		mockctl = gomock.NewController(GinkgoT())
 		auditor = NewMockAuditor(mockctl)
 		authorizer = NewMockAuthorizer(mockctl)
+
+		pubK, _, err = choria.Ed25519KeyPair()
+		Expect(err).ToNot(HaveOccurred())
 
 		cfg := cconf.NewConfigForTests()
 		cfg.DisableSecurityProviderVerify = true
@@ -55,7 +60,7 @@ var _ = Describe("BasicJWT", func() {
 		signer.SetAuditors(auditor)
 
 		protocol.Secure = "false"
-		token = genToken(time.Hour)
+		token = genToken(time.Hour, pubK)
 		req = &models.SignRequest{Token: token}
 	})
 
@@ -92,7 +97,7 @@ var _ = Describe("BasicJWT", func() {
 		})
 
 		It("Should handle JWT that expire too far in the future", func() {
-			req.Token = genToken(10 * time.Hour)
+			req.Token = genToken(10*time.Hour, pubK)
 			req.Request = []byte(rpcreqstr)
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
@@ -101,7 +106,7 @@ var _ = Describe("BasicJWT", func() {
 		})
 
 		It("Should handle JWT without an exp claim", func() {
-			req.Token = genToken(0)
+			req.Token = genToken(0, pubK)
 			req.Request = []byte(rpcreqstr)
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
@@ -143,8 +148,8 @@ var _ = Describe("BasicJWT", func() {
 	})
 })
 
-func genToken(exp time.Duration) string {
-	claims, err := tokens.NewClientIDClaims("ginkgo=test@example.net", []string{"*"}, "choria", nil, "", "", exp, nil)
+func genToken(exp time.Duration, pubK ed25519.PublicKey) string {
+	claims, err := tokens.NewClientIDClaims("ginkgo=test@example.net", []string{"*"}, "choria", nil, "", "", exp, nil, pubK)
 	Expect(err).ToNot(HaveOccurred())
 	signed, err := tokens.SignTokenWithKeyFile(claims, "testdata/key.pem")
 	Expect(err).ToNot(HaveOccurred())
