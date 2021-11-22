@@ -1,16 +1,21 @@
 package userlist
 
 import (
+	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
+	"github.com/choria-io/go-choria/choria"
 	"github.com/choria-io/go-choria/tokens"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ed25519"
 )
 
 func TestWithGinkgo(t *testing.T) {
@@ -25,6 +30,8 @@ var _ = Describe("Authenticators/Userlist", func() {
 		auth *Authenticator
 		err  error
 		log  *logrus.Entry
+		pubK ed25519.PublicKey
+		priK ed25519.PrivateKey
 	)
 
 	BeforeEach(func() {
@@ -42,8 +49,9 @@ var _ = Describe("Authenticators/Userlist", func() {
 			},
 		}
 
+		pubK, priK, err = choria.Ed25519KeyPair()
 		logger := logrus.New()
-		logger.Out = ioutil.Discard
+		logger.Out = GinkgoWriter
 		log = logrus.NewEntry(logger)
 		req = &models.LoginRequest{}
 		auth, err = New(conf, log, "ginkgo")
@@ -121,9 +129,61 @@ var _ = Describe("Authenticators/Userlist", func() {
 			Expect(res.Error).To(Equal("Login failed"))
 		})
 
+		It("Should fail for requests from the future", func() {
+			req.Username = "bob"
+			req.Password = "secret"
+			req.PublicKey = hex.EncodeToString(pubK)
+			req.Timestamp = strconv.Itoa(int(time.Now().Add(time.Hour).Unix()))
+
+			sig, err := choria.Ed25519Sign(priK, []byte(fmt.Sprintf("%s:%s:%s", req.Timestamp, req.Username, req.Password)))
+			Expect(err).ToNot(HaveOccurred())
+			req.Signature = hex.EncodeToString(sig)
+
+			res := auth.Login(req)
+			Expect(res.Error).To(Equal("Login failed"))
+			Expect(res.Detail).To(Equal("future request"))
+		})
+
+		It("Should fail for requests too far ago", func() {
+			req.Username = "bob"
+			req.Password = "secret"
+			req.PublicKey = hex.EncodeToString(pubK)
+			req.Timestamp = strconv.Itoa(int(time.Now().Add(-2 * time.Minute).Unix()))
+
+			sig, err := choria.Ed25519Sign(priK, []byte(fmt.Sprintf("%s:%s:%s", req.Timestamp, req.Username, req.Password)))
+			Expect(err).ToNot(HaveOccurred())
+			req.Signature = hex.EncodeToString(sig)
+
+			res := auth.Login(req)
+			Expect(res.Error).To(Equal("Login failed"))
+			Expect(res.Detail).To(Equal("old request"))
+		})
+
+		It("Should fail for invalid signatures", func() {
+			req.Username = "bob"
+			req.Password = "secret"
+			req.PublicKey = hex.EncodeToString(pubK)
+			req.Timestamp = strconv.Itoa(int(time.Now().Unix()))
+
+			sig, err := choria.Ed25519Sign(priK, []byte(fmt.Sprintf("%s:%s", req.Username, req.Password)))
+			Expect(err).ToNot(HaveOccurred())
+			req.Signature = hex.EncodeToString(sig)
+
+			res := auth.Login(req)
+			Expect(res.Error).To(Equal("Login failed"))
+			Expect(res.Detail).To(Equal("invalid sig"))
+		})
+
 		It("Should generate correct claims", func() {
 			req.Username = "bob"
 			req.Password = "secret"
+			req.PublicKey = hex.EncodeToString(pubK)
+			req.Timestamp = strconv.Itoa(int(time.Now().Unix()))
+
+			sig, err := choria.Ed25519Sign(priK, []byte(fmt.Sprintf("%s:%s:%s", req.Timestamp, req.Username, req.Password)))
+			Expect(err).ToNot(HaveOccurred())
+			req.Signature = hex.EncodeToString(sig)
+
 			res := auth.Login(req)
 			Expect(res.Error).To(Equal(""))
 
@@ -134,6 +194,7 @@ var _ = Describe("Authenticators/Userlist", func() {
 			Expect(claims.AllowedAgents).To(Equal([]string{"*"}))
 			Expect(claims.OPAPolicy).To(Equal(readFixture("testdata/test.rego")))
 			Expect(claims.Purpose).To(Equal(tokens.ClientIDPurpose))
+			Expect(claims.PublicKey).To(Equal(hex.EncodeToString(pubK)))
 			Expect(claims.UserProperties).To(Equal(map[string]string{
 				"group": "admins",
 			}))

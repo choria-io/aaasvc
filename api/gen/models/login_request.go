@@ -20,6 +20,15 @@ type LoginRequest struct {
 	// The password to log in with
 	Password string `json:"password,omitempty"`
 
+	// A ED25519 public key in hex encoded format that will be placed in the JWT and used to verify the signature
+	PublicKey string `json:"public_key,omitempty"`
+
+	// A signature made using the ED25519 private key of the time:user:pass string
+	Signature string `json:"signature,omitempty"`
+
+	// A string holding the numeric unix timestamp
+	Timestamp string `json:"timestamp,omitempty"`
+
 	// The username to log in with
 	Username string `json:"username,omitempty"`
 }

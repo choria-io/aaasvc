@@ -66,6 +66,18 @@ definitions:
         type: "string"
         description: "The password to log in with"
 
+      signature:
+        type: "string"
+        description: "A signature made using the ED25519 private key of the time:user:pass string"
+
+      public_key:
+        type: "string"
+        description: "A ED25519 public key in hex encoded format that will be placed in the JWT and used to verify the signature"
+
+      timestamp:
+        type: "string"
+        description: "A string holding the numeric unix timestamp"
+
   LoginResponse:
     type: "object"
     properties:

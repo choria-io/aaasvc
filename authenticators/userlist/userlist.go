@@ -6,10 +6,12 @@
 package userlist
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -19,6 +21,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/crypto/ed25519"
 )
 
 // AuthenticatorConfig configures the user/pass authenticator
@@ -75,6 +78,55 @@ func (a *Authenticator) Login(req *models.LoginRequest) (resp *models.LoginRespo
 func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.LoginResponse) {
 	resp = &models.LoginResponse{}
 
+	if req.PublicKey == "" {
+		a.log.Warnf("Login failed for user %s without a public key", req.Username)
+		resp.Error = "Login failed"
+		return
+	}
+
+	ts, err := strconv.ParseInt(req.Timestamp, 10, 64)
+	if err != nil {
+		a.log.Warnf("Login failed for user %s due to invalid timestamp '%s' in request: %s", req.Username, req.Timestamp, err)
+		resp.Error = "Login failed"
+		return
+	}
+	tm := time.Unix(ts, 0)
+	since := time.Since(tm)
+	if since < 0 {
+		a.log.Warnf("Login failed for user %s due to time %v being %v in the future", req.Username, tm, time.Until(tm))
+		resp.Detail = "future request"
+		resp.Error = "Login failed"
+		return
+	}
+	if since > time.Minute {
+		a.log.Warnf("Login failed for user %s due to %v old request", req.Username, since)
+		resp.Detail = "old request"
+		resp.Error = "Login failed"
+		return
+	}
+
+	pk, err := hex.DecodeString(req.PublicKey)
+	if err != nil {
+		a.log.Warnf("Login failed for user %s due to invalid public key: %s", req.Username, err)
+		resp.Error = "Login failed"
+		return
+	}
+
+	sigMsg := fmt.Sprintf("%s:%s:%s", req.Timestamp, req.Username, req.Password)
+	sigRaw, err := hex.DecodeString(req.Signature)
+	if err != nil {
+		a.log.Warnf("Login failed for user %s due to invalid signature: %s", req.Username, err)
+		resp.Error = "Login failed"
+		return
+	}
+
+	if !ed25519.Verify(pk, []byte(sigMsg), sigRaw) {
+		a.log.Warnf("Login failed for user %s due to signature verification failure", req.Username)
+		resp.Detail = "invalid sig"
+		resp.Error = "Login failed"
+		return
+	}
+
 	user, err := a.getUser(req.Username)
 	if err != nil {
 		a.log.Warnf("Login failed for user %s due to a failure while retrieving the user: %s", req.Username, err)
@@ -103,7 +155,7 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 	}
 
 	cid := fmt.Sprintf("up=%s", req.Username)
-	claims, err := tokens.NewClientIDClaims(cid, user.ACLs, user.Organization, user.Properties, policy, issuer, a.validity, user.Permissions)
+	claims, err := tokens.NewClientIDClaims(cid, user.ACLs, user.Organization, user.Properties, policy, issuer, a.validity, user.Permissions, pk)
 	if err != nil {
 		a.log.Warnf("Creating claims for user %s failed: %s", req.Username, err)
 		resp.Error = "Login failed"

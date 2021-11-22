@@ -13,7 +13,7 @@ import (
 	"github.com/choria-io/aaasvc/api/gen/restapi/operations"
 )
 
-//go:generate swagger generate server --target ../../gen --name ChoriaCentralSigningService --spec ../../swagger.yaml --principal interface{}
+//go:generate swagger generate server --target ../../api --name ChoriaCentralSigningService --spec ../swagger.yaml --principal interface{}
 
 func configureFlags(api *operations.ChoriaCentralSigningServiceAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
