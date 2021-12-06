@@ -1,5 +1,11 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2021/12/06|      |Release 0.6.0                                                                                            |
+|2021/11/19|99    |Remove Okta and NATS Streaming Server support                                                            |
+|2021/11/19|99    |Support signed requests using ed25519 public keys                                                        |
+|2021/11/15|97    |Support client permissions                                                                               |
+|2021/11/05|95    |Support new Choria client tokens                                                                         |
+|2021/08/28|89    |Support signing requests via a Choria Service                                                            |
 |2021/07/20|      |Release 0.5.0                                                                                            |
 |2021/07/20|      |Move to `github.com/golang-jwt/jwt`                                                                      |
 |2021/04/16|      |Various build tooling updates to support Podman and use go 1.16 everywhere                               |
