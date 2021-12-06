@@ -5,9 +5,6 @@ ARG REPO="https://yum.eu.choria.io/release/el/release.repo"
 WORKDIR /
 ENTRYPOINT ["/usr/sbin/aaasvc"]
 
-RUN yum -y update && \
-    yum -y clean all
-
 RUN curl -s "${REPO}" > /etc/yum.repos.d/choria.repo && \
     yum -y install aaasvc nc procps-ng openssl && \
     yum -y clean all
