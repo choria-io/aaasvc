@@ -15,13 +15,15 @@ require (
 	github.com/go-openapi/validate v0.20.3
 	github.com/golang/mock v1.6.0
 	github.com/jessevdk/go-flags v1.5.0
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
-	github.com/open-policy-agent/opa v0.37.0
+	github.com/open-policy-agent/opa v0.40.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/tidwall/gjson v1.11.0
 	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
-	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4
+	golang.org/x/net v0.0.0-20220107192237-5cfca573fb4d
 )
