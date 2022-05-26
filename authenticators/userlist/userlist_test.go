@@ -12,7 +12,7 @@ import (
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/go-choria/choria"
 	"github.com/choria-io/go-choria/tokens"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ed25519"

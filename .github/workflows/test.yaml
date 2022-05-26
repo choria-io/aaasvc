@@ -5,7 +5,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go: [1.16, 1.17]
+        go: [1.17, 1.18]
 
     runs-on: ubuntu-latest
     steps:
@@ -20,4 +20,4 @@ jobs:
       - name: Lint and Test
         uses: choria-io/actions/lint_and_test/go@main
         with:
-          ginkgo: "yes"
+          ginkgo: "v2"
