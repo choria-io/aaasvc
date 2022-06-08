@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/alecthomas/kingpin"
+	"github.com/choria-io/fisk"
 )
 
 var (
@@ -21,12 +21,12 @@ var (
 	ctx    context.Context
 	cancel func()
 
-	runcmd   *kingpin.CmdClause
-	cryptcmd *kingpin.CmdClause
+	runcmd   *fisk.CmdClause
+	cryptcmd *fisk.CmdClause
 )
 
 func Run() {
-	app := kingpin.New("caaa", "The Choria AAA Service")
+	app := fisk.New("caaa", "The Choria AAA Service")
 	app.Author("R.I.Pienaar <rip@devco.net>")
 	app.Version(Version)
 	cryptcmd = app.Command("crypt", "Encrypts a password received on STDIN using bcrypt")
@@ -37,7 +37,7 @@ func Run() {
 	runcmd.Flag("pid", "File to write running pid to").StringVar(&pidfile)
 	runcmd.Flag("disable-tls", "Disables TLS").Hidden().BoolVar(&notls)
 
-	command := kingpin.MustParse(app.Parse(os.Args[1:]))
+	command := fisk.MustParse(app.Parse(os.Args[1:]))
 
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
@@ -46,7 +46,7 @@ func Run() {
 
 	if command == cryptcmd.FullCommand() {
 		err = crypt()
-		kingpin.FatalIfError(err, "could not run: %s", err)
+		fisk.FatalIfError(err, "could not run: %s", err)
 		return
 	}
 
@@ -59,7 +59,7 @@ func Run() {
 		err = fmt.Errorf("unknown command: %s", command)
 	}
 
-	kingpin.FatalIfError(err, "could not run")
+	fisk.FatalIfError(err, "could not run")
 }
 
 func interruptWatcher() {

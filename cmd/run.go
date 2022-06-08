@@ -133,7 +133,7 @@ func serveChoria(wg *sync.WaitGroup, conf *config.Config) error {
 		return err
 	}
 
-	err = instance.RegisterAgent(ctx, agent.Name(), agent)
+	err = instance.AgentManager().RegisterAgent(ctx, agent.Name(), agent, instance.Connector())
 	if err != nil {
 		return err
 	}
