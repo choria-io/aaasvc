@@ -1,5 +1,7 @@
 |Date      |Issue |Description                                                                                              |
 |----------|------|---------------------------------------------------------------------------------------------------------|
+|2022/06/10|      |Release 0.6.1                                                                                            |
+|2021/06/10|      |Dependency updates that supports `system_user` permission                                                |
 |2021/12/06|      |Release 0.6.0                                                                                            |
 |2021/11/19|99    |Remove Okta and NATS Streaming Server support                                                            |
 |2021/11/19|99    |Support signed requests using ed25519 public keys                                                        |
