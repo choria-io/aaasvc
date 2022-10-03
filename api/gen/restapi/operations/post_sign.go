@@ -29,12 +29,12 @@ func NewPostSign(ctx *middleware.Context, handler PostSignHandler) *PostSign {
 	return &PostSign{Context: ctx, Handler: handler}
 }
 
-/* PostSign swagger:route POST /sign postSign
+/*
+	PostSign swagger:route POST /sign postSign
 
-Sign a message
+# Sign a message
 
 Signs a Choria request
-
 */
 type PostSign struct {
 	Context *middleware.Context

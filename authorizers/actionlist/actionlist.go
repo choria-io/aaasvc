@@ -3,17 +3,20 @@
 // The JWT claims must have a "agents" claim that is a list of a strings with the following possible values:
 //
 // Allow all requests to any agent and action
-//   []string{"*"}
+//
+//	[]string{"*"}
 //
 // Allow requests to all actions of rpcutil agent
-//  []string{"rpcutil.*"}
+//
+//	[]string{"rpcutil.*"}
 //
 // Allow requests only to rpcutil agent ping action
-//  []string{"rpcutil.ping"}
+//
+//	[]string{"rpcutil.ping"}
 //
 // Multiple claims are parsed in a first match order, default is deny
 //
-//  []string{"rpcutil.*", "package.status"}
+//	[]string{"rpcutil.*", "package.status"}
 //
 // Here we have 2 allow rules, it will keep looking till it finds a match and then default deny.
 package actionlist

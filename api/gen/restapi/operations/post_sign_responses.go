@@ -16,7 +16,8 @@ import (
 // PostSignOKCode is the HTTP code returned for type PostSignOK
 const PostSignOKCode int = 200
 
-/*PostSignOK Signature response
+/*
+PostSignOK Signature response
 
 swagger:response postSignOK
 */

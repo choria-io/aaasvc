@@ -1,7 +1,7 @@
 package actionlist
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/choria-io/go-choria/tokens"
@@ -27,7 +27,7 @@ var _ = Describe("Authorizers/Actionlist", func() {
 
 	BeforeEach(func() {
 		logger := logrus.New()
-		logger.Out = ioutil.Discard
+		logger.Out = io.Discard
 		log = logrus.NewEntry(logger)
 		claims = &tokens.ClientIDClaims{}
 		auth = Authorizer{log: log, site: "ginkgo"}
@@ -47,7 +47,7 @@ var _ = Describe("Authorizers/Actionlist", func() {
 			claims.AllowedAgents = []string{"nothing.*"}
 			req, err := v1.NewRequest("rpcutil", "ginkgo.example.net", "choria=ginkgo", 60, "123454", "mcollective")
 			Expect(err).ToNot(HaveOccurred())
-			req.SetMessage(`{"action":"ping", "agent":"rpcutil"}`)
+			req.SetMessage([]byte(`{"action":"ping", "agent":"rpcutil"}`))
 
 			allowed, err := auth.Authorize(req, claims)
 			Expect(err).ToNot(HaveOccurred())

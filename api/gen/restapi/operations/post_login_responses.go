@@ -16,7 +16,8 @@ import (
 // PostLoginOKCode is the HTTP code returned for type PostLoginOK
 const PostLoginOKCode int = 200
 
-/*PostLoginOK Login response
+/*
+PostLoginOK Login response
 
 swagger:response postLoginOK
 */

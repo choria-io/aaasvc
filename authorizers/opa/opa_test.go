@@ -3,7 +3,7 @@ package opa
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -90,7 +90,7 @@ var _ = Describe("Authorizers/OPA", func() {
 })
 
 func readFixture(f string) string {
-	c, err := ioutil.ReadFile(f)
+	c, err := os.ReadFile(f)
 	if err != nil {
 		panic(err)
 	}

@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/authenticators"
@@ -101,7 +101,7 @@ func New(file string) (conf *Config, err error) {
 		audit:    []auditors.Auditor{},
 	}
 
-	rawconf, err := ioutil.ReadFile(file)
+	rawconf, err := os.ReadFile(file)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not read config file %s", file)
 	}

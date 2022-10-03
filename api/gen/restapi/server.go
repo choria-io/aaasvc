@@ -8,7 +8,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -106,7 +105,7 @@ type Server struct {
 }
 
 // Logf logs message either via defined user logger or via system one if no user logger is defined.
-func (s *Server) Logf(f string, args ...interface{}) {
+func (s *Server) Logf(f string, args ...any) {
 	if s.api != nil && s.api.Logger != nil {
 		s.api.Logger(f, args...)
 	} else {
@@ -116,7 +115,7 @@ func (s *Server) Logf(f string, args ...interface{}) {
 
 // Fatalf logs message either via defined user logger or via system one if no user logger is defined.
 // Exits with non-zero status after printing
-func (s *Server) Fatalf(f string, args ...interface{}) {
+func (s *Server) Fatalf(f string, args ...any) {
 	if s.api != nil && s.api.Logger != nil {
 		s.api.Logger(f, args...)
 		os.Exit(1)
@@ -275,7 +274,7 @@ func (s *Server) Serve() (err error) {
 
 		if s.TLSCACertificate != "" {
 			// include specified CA certificate
-			caCert, caCertErr := ioutil.ReadFile(string(s.TLSCACertificate))
+			caCert, caCertErr := os.ReadFile(string(s.TLSCACertificate))
 			if caCertErr != nil {
 				return caCertErr
 			}

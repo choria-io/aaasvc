@@ -3,7 +3,6 @@ package userlist
 import (
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
@@ -203,7 +202,7 @@ var _ = Describe("Authenticators/Userlist", func() {
 })
 
 func readFixture(f string) string {
-	c, err := ioutil.ReadFile(f)
+	c, err := os.ReadFile(f)
 	if err != nil {
 		panic(err)
 	}

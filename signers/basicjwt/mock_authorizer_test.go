@@ -47,7 +47,7 @@ func (m *MockAuthorizer) Authorize(arg0 protocol.Request, arg1 *tokens.ClientIDC
 }
 
 // Authorize indicates an expected call of Authorize.
-func (mr *MockAuthorizerMockRecorder) Authorize(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockAuthorizerMockRecorder) Authorize(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authorize", reflect.TypeOf((*MockAuthorizer)(nil).Authorize), arg0, arg1)
 }

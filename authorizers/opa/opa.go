@@ -22,7 +22,6 @@
 // * `time` - the time the request was made
 // * `site` - the site hosting the aaasvcs (from its config)
 // * `claims` - all the JWT claims
-//
 package opa
 
 import (
@@ -115,7 +114,7 @@ func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claim
 		return false, fmt.Errorf("invalid policy given")
 	}
 
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 	err = json.Unmarshal(rpcreq.Data, &data)
 	if err != nil {
 		a.log.Errorf("Invalid data: %s", rpcreq.Data)
@@ -151,19 +150,19 @@ func (a *Authorizer) evaluatePolicy(rpcreq *mcorpc.Request, policy string, claim
 	return allowed, nil
 }
 
-func (a *Authorizer) regoInputs(req *mcorpc.Request, data map[string]interface{}, claims *tokens.ClientIDClaims) (map[string]interface{}, error) {
+func (a *Authorizer) regoInputs(req *mcorpc.Request, data map[string]any, claims *tokens.ClientIDClaims) (map[string]any, error) {
 	j, err := json.Marshal(claims)
 	if err != nil {
 		return nil, fmt.Errorf("could not JSON encode claims")
 	}
 
-	cdat := new(map[string]interface{})
+	cdat := new(map[string]any)
 	err = json.Unmarshal(j, &cdat)
 	if err != nil {
 		return nil, fmt.Errorf("could not JSON decode claims")
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"agent":      req.Agent,
 		"action":     req.Action,
 		"data":       data,
