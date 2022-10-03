@@ -1,7 +1,7 @@
 package userlist
 
 import (
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/choria-io/go-choria/tokens"
@@ -51,7 +51,7 @@ func (u *User) OpenPolicy() (policy string, err error) {
 		return "", nil
 	}
 
-	out, err := ioutil.ReadFile(u.OPAPolicyFile)
+	out, err := os.ReadFile(u.OPAPolicyFile)
 	if err != nil {
 		return "", err
 	}

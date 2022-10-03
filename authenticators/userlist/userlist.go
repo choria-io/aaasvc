@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"sync"
@@ -192,7 +191,7 @@ func (a *Authenticator) reloadUserFile() (read bool, err error) {
 
 	a.userFileMtime = stat.ModTime()
 
-	uf, err := ioutil.ReadFile(a.c.UsersFile)
+	uf, err := os.ReadFile(a.c.UsersFile)
 	if err != nil {
 		return false, err
 	}

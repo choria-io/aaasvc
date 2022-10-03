@@ -1,7 +1,7 @@
 package actionlist
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/choria-io/go-choria/tokens"
@@ -27,7 +27,7 @@ var _ = Describe("Authorizers/Actionlist", func() {
 
 	BeforeEach(func() {
 		logger := logrus.New()
-		logger.Out = ioutil.Discard
+		logger.Out = io.Discard
 		log = logrus.NewEntry(logger)
 		claims = &tokens.ClientIDClaims{}
 		auth = Authorizer{log: log, site: "ginkgo"}

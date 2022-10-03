@@ -22,7 +22,7 @@ var _ = Describe("Auditors/JetStream", func() {
 	Describe("Audit", func() {
 		It("Should publish valid audit messages", func() {
 			auditor := &JetStream{
-				outbox: make(chan interface{}, 1000),
+				outbox: make(chan any, 1000),
 				site:   "GINKGO",
 			}
 

@@ -46,7 +46,7 @@ func (m *MockAuditor) Audit(arg0 auditors.Action, arg1 string, arg2 protocol.Req
 }
 
 // Audit indicates an expected call of Audit.
-func (mr *MockAuditorMockRecorder) Audit(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockAuditorMockRecorder) Audit(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Audit", reflect.TypeOf((*MockAuditor)(nil).Audit), arg0, arg1, arg2)
 }

@@ -29,12 +29,12 @@ func NewPostLogin(ctx *middleware.Context, handler PostLoginHandler) *PostLogin 
 	return &PostLogin{Context: ctx, Handler: handler}
 }
 
-/* PostLogin swagger:route POST /login postLogin
+/*
+	PostLogin swagger:route POST /login postLogin
 
-Logs into the service using auth0
+# Logs into the service using auth0
 
 Logs into the choria service
-
 */
 type PostLogin struct {
 	Context *middleware.Context

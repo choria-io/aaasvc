@@ -50,7 +50,7 @@ func (l *Logfile) Audit(act auditors.Action, caller string, req protocol.Request
 		return errors.Wrap(err, "could not create JSON request")
 	}
 
-	l.log.WithFields(logrus.Fields{"caller": caller, "action": auditors.ActionNames[act]}).Infof(j)
+	l.log.WithFields(logrus.Fields{"caller": caller, "action": auditors.ActionNames[act]}).Infof(string(j))
 
 	return nil
 }

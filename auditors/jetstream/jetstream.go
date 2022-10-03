@@ -34,7 +34,7 @@ type JetStream struct {
 	nc      inter.Connector
 	fw      inter.Framework
 	log     *logrus.Entry
-	outbox  chan interface{}
+	outbox  chan any
 	site    string
 }
 
@@ -47,7 +47,7 @@ func New(fw inter.Framework, c *AuditorConfig, site string) (auditor *JetStream,
 		fw:      fw,
 		servers: c.servers,
 		log:     fw.Logger("jetstream"),
-		outbox:  make(chan interface{}, 1000),
+		outbox:  make(chan any, 1000),
 		site:    site,
 	}
 

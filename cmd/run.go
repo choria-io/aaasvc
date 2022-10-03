@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -24,7 +23,7 @@ import (
 
 func run() error {
 	if pidfile != "" {
-		err := ioutil.WriteFile(pidfile, []byte(fmt.Sprintf("%d", os.Getpid())), 0644)
+		err := os.WriteFile(pidfile, []byte(fmt.Sprintf("%d", os.Getpid())), 0644)
 		if err != nil {
 			return errors.Wrap(err, "could not write pidfile")
 		}
