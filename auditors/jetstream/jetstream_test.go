@@ -28,7 +28,7 @@ var _ = Describe("Auditors/JetStream", func() {
 
 			rpcreq, err := v1.NewRequest("ginkgo", "ginkgo.example.net", "choria=ginkgo", 60, "9b3a0089dbe0d896c1b79bbc12d61212", "mcollective")
 			Expect(err).ToNot(HaveOccurred())
-			rpcreq.SetMessage("{}")
+			rpcreq.SetMessage([]byte("{}"))
 
 			j, err := rpcreq.JSON()
 			Expect(err).ToNot(HaveOccurred())

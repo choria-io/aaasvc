@@ -47,7 +47,7 @@ var _ = Describe("Authorizers/Actionlist", func() {
 			claims.AllowedAgents = []string{"nothing.*"}
 			req, err := v1.NewRequest("rpcutil", "ginkgo.example.net", "choria=ginkgo", 60, "123454", "mcollective")
 			Expect(err).ToNot(HaveOccurred())
-			req.SetMessage(`{"action":"ping", "agent":"rpcutil"}`)
+			req.SetMessage([]byte(`{"action":"ping", "agent":"rpcutil"}`))
 
 			allowed, err := auth.Authorize(req, claims)
 			Expect(err).ToNot(HaveOccurred())

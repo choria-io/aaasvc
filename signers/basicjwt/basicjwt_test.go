@@ -70,11 +70,11 @@ var _ = Describe("BasicJWT", func() {
 
 	Describe("Sign", func() {
 		var rpcreq protocol.Request
-		var rpcreqstr string
+		var rpcreqstr []byte
 
 		BeforeEach(func() {
 			rpcreq, err = v1.NewRequest("ginkgo", "ginkgo.example.net", "choria=ginkgo", 60, "9b3a0089dbe0d896c1b79bbc12d61212", "mcollective")
-			rpcreq.SetMessage("{}")
+			rpcreq.SetMessage([]byte("{}"))
 			Expect(err).ToNot(HaveOccurred())
 
 			rpcreqstr, err = rpcreq.JSON()
@@ -89,7 +89,7 @@ var _ = Describe("BasicJWT", func() {
 
 		It("Should handle invalid JWT", func() {
 			req.Token = ""
-			req.Request = []byte(rpcreqstr)
+			req.Request = rpcreqstr
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
@@ -98,7 +98,7 @@ var _ = Describe("BasicJWT", func() {
 
 		It("Should handle JWT that expire too far in the future", func() {
 			req.Token = genToken(10*time.Hour, pubK)
-			req.Request = []byte(rpcreqstr)
+			req.Request = rpcreqstr
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
@@ -107,7 +107,7 @@ var _ = Describe("BasicJWT", func() {
 
 		It("Should handle JWT without an exp claim", func() {
 			req.Token = genToken(0, pubK)
-			req.Request = []byte(rpcreqstr)
+			req.Request = rpcreqstr
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
@@ -115,7 +115,7 @@ var _ = Describe("BasicJWT", func() {
 		})
 
 		It("Should handle failed authorizations", func() {
-			req.Request = []byte(rpcreqstr)
+			req.Request = rpcreqstr
 			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(false, fmt.Errorf("simulated failure"))
 			res := signer.Sign(req)
@@ -124,7 +124,7 @@ var _ = Describe("BasicJWT", func() {
 		})
 
 		It("Should audit denied requests", func() {
-			req.Request = []byte(rpcreqstr)
+			req.Request = rpcreqstr
 			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(false, nil)
 			res := signer.Sign(req)
@@ -133,7 +133,7 @@ var _ = Describe("BasicJWT", func() {
 		})
 
 		It("Should create a valid SR", func() {
-			req.Request = []byte(rpcreqstr)
+			req.Request = rpcreqstr
 			auditor.EXPECT().Audit(auditors.Allow, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(true, nil)
 			res := signer.Sign(req)
