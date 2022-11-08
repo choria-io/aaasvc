@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/choria-io/fisk"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func crypt() error {
+func crypt(_ *fisk.ParseContext) error {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		pass, err := bcrypt.GenerateFromPassword([]byte(scanner.Text()), 5)

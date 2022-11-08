@@ -14,12 +14,14 @@ package basicjwt
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/signers"
 	"github.com/choria-io/go-choria/inter"
+	v2 "github.com/choria-io/go-choria/protocol/v2"
 	"github.com/choria-io/go-choria/tokens"
 	"github.com/sirupsen/logrus"
 
@@ -27,13 +29,15 @@ import (
 	"github.com/choria-io/aaasvc/authorizers"
 	"github.com/choria-io/go-choria/protocol"
 	v1 "github.com/choria-io/go-choria/protocol/v1"
-	"github.com/tidwall/gjson"
 )
 
 // SignerConfig is configuration for the BasicJWT signer type
 type SignerConfig struct {
 	// SigningPubKey is the public certificate of the key used to sign the JWT
 	SigningPubKey string `json:"signing_certificate"`
+
+	// SigningToken is the JWT used for signing requests, should have delegate authority
+	SigningToken string `json:"signing_token"`
 
 	// MaxValidity is the maximum token validity from current time to sign, this is to avoid someone issuing infinite or many year long tokens that can be a real problem should they leak
 	MaxValidity string `json:"max_validity"`
@@ -44,13 +48,14 @@ type SignerConfig struct {
 
 // BasicJWT is a very basic JWT based signer
 type BasicJWT struct {
-	maxExp time.Duration
-	site   string
-	pubkey string
-	auth   authorizers.Authorizer
-	audit  []auditors.Auditor
-	fw     inter.Framework
-	log    *logrus.Entry
+	maxExp      time.Duration
+	site        string
+	pubkey      string
+	signerToken string
+	auth        authorizers.Authorizer
+	audit       []auditors.Auditor
+	fw          inter.Framework
+	log         *logrus.Entry
 }
 
 // New creates a new instance of the BasicJWT signer
@@ -65,12 +70,13 @@ func New(fw inter.Framework, c *SignerConfig, site string) (signer *BasicJWT, er
 	}
 
 	return &BasicJWT{
-		maxExp: d,
-		pubkey: c.SigningPubKey,
-		audit:  []auditors.Auditor{},
-		fw:     fw,
-		log:    fw.Logger("signer").WithField("signer", "basicjwt"),
-		site:   site,
+		maxExp:      d,
+		pubkey:      c.SigningPubKey,
+		signerToken: c.SigningToken,
+		audit:       []auditors.Auditor{},
+		fw:          fw,
+		log:         fw.Logger("signer").WithField("signer", "basicjwt"),
+		site:        site,
 	}, nil
 }
 
@@ -145,6 +151,16 @@ func (s *BasicJWT) signRequest(req []byte, token string) (bool, []byte, error) {
 		return false, nil, fmt.Errorf("secure request failed: %s", err)
 	}
 
+	if s.signerToken != "" {
+		s.log.Debugf("Signing secure request using %s", s.signerToken)
+		pk, err := os.ReadFile(s.signerToken)
+		if err != nil {
+			return false, nil, fmt.Errorf("setting signing token failed: %w", err)
+		}
+
+		srequest.SetSigner(pk)
+	}
+
 	srj, err := srequest.JSON()
 	if err != nil {
 		return false, nil, fmt.Errorf("secure request failed: %s", err)
@@ -152,7 +168,7 @@ func (s *BasicJWT) signRequest(req []byte, token string) (bool, []byte, error) {
 
 	s.log.Infof("Allowing request %s from %s@%s for %s", request.RequestID(), request.CallerID(), request.SenderID(), request.Agent())
 
-	return true, []byte(srj), nil
+	return true, srj, nil
 }
 
 func (s *BasicJWT) sign(req *models.SignRequest) (sr *models.SignResponse) {
@@ -238,20 +254,36 @@ func verifyExp(claims *tokens.ClientIDClaims, maxAge time.Duration) bool {
 
 // Parse the JSON request and if its a v1 choria request creates a v1.Request
 func newRequestFromJSON(jreq []byte) (protocol.Request, error) {
-	version := gjson.GetBytes(jreq, "protocol").String()
-	if version != "choria:request:1" {
-		return nil, fmt.Errorf("invalid request version '%s' expected choria:request:1", version)
-	}
+	version := protocol.VersionFromJSON(jreq)
 
-	request, err := v1.NewRequest("", "", "", 0, "", "mcollective")
-	if err != nil {
-		return nil, fmt.Errorf("could not parse request: %s", err)
-	}
+	switch version {
+	case protocol.RequestV1:
+		request, err := v1.NewRequest("", "", "", 0, "", "mcollective")
+		if err != nil {
+			return nil, fmt.Errorf("could not parse request: %s", err)
+		}
 
-	err = json.Unmarshal(jreq, request)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse request: %s", err)
-	}
+		err = json.Unmarshal(jreq, request)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse request: %s", err)
+		}
 
-	return request, nil
+		return request, nil
+
+	case protocol.RequestV2:
+		request, err := v2.NewRequest("", "", "", 0, "", "choria")
+		if err != nil {
+			return nil, fmt.Errorf("could not parse request: %s", err)
+		}
+
+		err = json.Unmarshal(jreq, request)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse request: %s", err)
+		}
+
+		return request, nil
+
+	default:
+		return nil, fmt.Errorf("unsupported request version '%s'", version.String())
+	}
 }

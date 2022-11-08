@@ -85,7 +85,7 @@ func (a *Authorizer) authorize(req protocol.Request, claims *tokens.ClientIDClai
 	}
 
 	rpcreq := &mcorpc.Request{}
-	err = json.Unmarshal([]byte(req.Message()), rpcreq)
+	err = json.Unmarshal(req.Message(), rpcreq)
 	if err != nil {
 		a.log.Warnf("Could not parse RPC request in request %s from %s@%s for agent %s", req.RequestID(), req.CallerID(), req.SenderID(), req.Agent())
 		return false, req.Agent(), err
