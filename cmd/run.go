@@ -13,6 +13,7 @@ import (
 	"github.com/choria-io/aaasvc/config"
 	"github.com/choria-io/aaasvc/service"
 	"github.com/choria-io/aaasvc/signers"
+	"github.com/choria-io/fisk"
 	"github.com/choria-io/go-choria/server"
 	"github.com/go-openapi/loads"
 	"github.com/jessevdk/go-flags"
@@ -21,7 +22,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func run() error {
+func run(_ *fisk.ParseContext) error {
 	if pidfile != "" {
 		err := os.WriteFile(pidfile, []byte(fmt.Sprintf("%d", os.Getpid())), 0644)
 		if err != nil {
