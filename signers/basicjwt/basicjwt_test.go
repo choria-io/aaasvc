@@ -1,6 +1,7 @@
 package basicjwt
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -37,6 +38,7 @@ var _ = Describe("BasicJWT", func() {
 		authorizer *MockAuthorizer
 		req        *models.SignRequest
 		pubK       ed25519.PublicKey
+		priK       ed25519.PrivateKey
 		token      string
 	)
 
@@ -45,7 +47,7 @@ var _ = Describe("BasicJWT", func() {
 		auditor = NewMockAuditor(mockctl)
 		authorizer = NewMockAuthorizer(mockctl)
 
-		pubK, _, err = choria.Ed25519KeyPair()
+		pubK, priK, err = choria.Ed25519KeyPair()
 		Expect(err).ToNot(HaveOccurred())
 
 		cfg := cconf.NewConfigForTests()
@@ -84,6 +86,7 @@ var _ = Describe("BasicJWT", func() {
 		It("Should handle bad requests", func() {
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
+			Expect(res.Detail).To(Equal("invalid request: unsupported request version 'io.choria.protocol.unknown'"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
@@ -93,6 +96,7 @@ var _ = Describe("BasicJWT", func() {
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
+			Expect(res.Detail).To(Equal("invalid token: could not parse client id token: token contains an invalid number of segments"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
@@ -102,6 +106,7 @@ var _ = Describe("BasicJWT", func() {
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
+			Expect(res.Detail).To(Equal("invalid token: invalid claims: expiry is not set or it is too far in the future"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
@@ -111,33 +116,71 @@ var _ = Describe("BasicJWT", func() {
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
+			Expect(res.Detail).To(Equal("invalid token: invalid claims: expiry is not set or it is too far in the future"))
+			Expect(res.SecureRequest).To(BeNil())
+		})
+
+		It("Should handle invalid signatures", func() {
+			// first a totally bogus sig
+			req.Token = genToken(time.Minute, pubK)
+			req.Request = rpcreqstr
+			req.Signature = "invalid"
+			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
+			res := signer.Sign(req)
+			Expect(res.Error).To(Equal("Request denied"))
+			Expect(res.Detail).To(Equal("invalid signature: invalid signature in request: encoding/hex: invalid byte: U+0069 'i'"))
+			Expect(res.SecureRequest).To(BeNil())
+
+			// now a valid sig but for a different message
+			sig, err := choria.Ed25519Sign(priK, []byte("invalid message"))
+			Expect(err).ToNot(HaveOccurred())
+			req.Signature = hex.EncodeToString(sig)
+			res = signer.Sign(req)
+			Expect(res.Error).To(Equal("Request denied"))
+			Expect(res.Detail).To(Equal("invalid signature: invalid request signature"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
 		It("Should handle failed authorizations", func() {
 			req.Request = rpcreqstr
+			req.Token = genToken(time.Minute, pubK)
+
+			signer.allowBearerTokens = true
+
 			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(false, fmt.Errorf("simulated failure"))
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
+			Expect(res.Detail).To(Equal("authorization failed: simulated failure"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
 		It("Should audit denied requests", func() {
+			signer.allowBearerTokens = true
+
 			req.Request = rpcreqstr
 			auditor.EXPECT().Audit(auditors.Deny, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(false, nil)
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
+			Expect(res.Detail).To(Equal(""))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
 		It("Should create a valid SR", func() {
 			req.Request = rpcreqstr
+
+			// make sure we expect a signature
+			signer.allowBearerTokens = false
+			sig, err := choria.Ed25519Sign(priK, req.Request)
+			Expect(err).ToNot(HaveOccurred())
+			req.Signature = hex.EncodeToString(sig)
+
 			auditor.EXPECT().Audit(auditors.Allow, "ginkgo=test_example_net", gomock.Any()).AnyTimes()
 			authorizer.EXPECT().Authorize(gomock.Any(), gomock.Any()).Return(true, nil)
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal(""))
+			Expect(res.Detail).To(Equal(""))
 
 			sr, err := fw.NewSecureRequest(rpcreq)
 			Expect(err).ToNot(HaveOccurred())

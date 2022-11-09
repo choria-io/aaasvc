@@ -105,7 +105,7 @@ type Server struct {
 }
 
 // Logf logs message either via defined user logger or via system one if no user logger is defined.
-func (s *Server) Logf(f string, args ...any) {
+func (s *Server) Logf(f string, args ...interface{}) {
 	if s.api != nil && s.api.Logger != nil {
 		s.api.Logger(f, args...)
 	} else {
@@ -115,7 +115,7 @@ func (s *Server) Logf(f string, args ...any) {
 
 // Fatalf logs message either via defined user logger or via system one if no user logger is defined.
 // Exits with non-zero status after printing
-func (s *Server) Fatalf(f string, args ...any) {
+func (s *Server) Fatalf(f string, args ...interface{}) {
 	if s.api != nil && s.api.Logger != nil {
 		s.api.Logger(f, args...)
 		os.Exit(1)
@@ -304,10 +304,6 @@ func (s *Server) Serve() (err error) {
 			// this happens with a wrong custom TLS configurator
 			s.Fatalf("no certificate was configured for TLS")
 		}
-
-		// must have at least one certificate or panics
-		//lint:ignore SA1019 generated code
-		httpsServer.TLSConfig.BuildNameToCertificate()
 
 		configureServer(httpsServer, "https", s.httpsServerL.Addr().String())
 

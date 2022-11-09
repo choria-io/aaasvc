@@ -12,6 +12,7 @@
 package basicjwt
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -20,6 +21,7 @@ import (
 
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/signers"
+	"github.com/choria-io/go-choria/choria"
 	"github.com/choria-io/go-choria/inter"
 	v2 "github.com/choria-io/go-choria/protocol/v2"
 	"github.com/choria-io/go-choria/tokens"
@@ -44,18 +46,22 @@ type SignerConfig struct {
 
 	// ChoriaService enables the choria service to sign requests
 	ChoriaService bool `json:"choria_service"`
+
+	// AllowBearerTokens makes the signature of the request optional
+	AllowBearerTokens bool `json:"allow_bearer_tokens"`
 }
 
 // BasicJWT is a very basic JWT based signer
 type BasicJWT struct {
-	maxExp      time.Duration
-	site        string
-	pubkey      string
-	signerToken string
-	auth        authorizers.Authorizer
-	audit       []auditors.Auditor
-	fw          inter.Framework
-	log         *logrus.Entry
+	maxExp            time.Duration
+	site              string
+	pubkey            string
+	signerToken       string
+	allowBearerTokens bool
+	auth              authorizers.Authorizer
+	audit             []auditors.Auditor
+	fw                inter.Framework
+	log               *logrus.Entry
 }
 
 // New creates a new instance of the BasicJWT signer
@@ -70,13 +76,14 @@ func New(fw inter.Framework, c *SignerConfig, site string) (signer *BasicJWT, er
 	}
 
 	return &BasicJWT{
-		maxExp:      d,
-		pubkey:      c.SigningPubKey,
-		signerToken: c.SigningToken,
-		audit:       []auditors.Auditor{},
-		fw:          fw,
-		log:         fw.Logger("signer").WithField("signer", "basicjwt"),
-		site:        site,
+		maxExp:            d,
+		pubkey:            c.SigningPubKey,
+		signerToken:       c.SigningToken,
+		allowBearerTokens: c.AllowBearerTokens,
+		audit:             []auditors.Auditor{},
+		fw:                fw,
+		log:               fw.Logger("signer").WithField("signer", "basicjwt"),
+		site:              site,
 	}, nil
 }
 
@@ -91,16 +98,16 @@ func (s *BasicJWT) SetAuthorizer(a authorizers.Authorizer) {
 }
 
 // SignRequest signs req based on token using same rules as Sign()
-func (s *BasicJWT) SignRequest(req []byte, token string) (bool, []byte, error) {
-	return s.signRequest(req, token)
+func (s *BasicJWT) SignRequest(req []byte, token string, signature string) (bool, []byte, error) {
+	return s.signRequest(req, token, signature)
 }
 
 // Sign creates a new secure request from the given request after authz
 //
 // - The token is validated for time etc
-// - The request is parsed into a choria v1.Request
+// - The request is parsed into a choria protocol.Request
 // - If the request matches the claims in the JWT caller is set to jc=<user>
-// - A v1.SecureRequest is made and returned
+// - A protocol.SecureRequest is made and returned
 func (s *BasicJWT) Sign(req *models.SignRequest) (sr *models.SignResponse) {
 	sr = s.sign(req)
 
@@ -114,7 +121,41 @@ func (s *BasicJWT) Sign(req *models.SignRequest) (sr *models.SignResponse) {
 	return sr
 }
 
-func (s *BasicJWT) signRequest(req []byte, token string) (bool, []byte, error) {
+func (s *BasicJWT) checkSignature(req []byte, signature string, claims *tokens.ClientIDClaims) error {
+	hasSig := len(signature) > 0
+
+	// no signature is ok when we are configured to allow bearer tokens
+	if s.allowBearerTokens && !hasSig {
+		return nil
+	}
+
+	if !hasSig {
+		return fmt.Errorf("no signature")
+	}
+
+	pk, err := hex.DecodeString(claims.PublicKey)
+	if err != nil {
+		return fmt.Errorf("invalid public key in token: %w", err)
+	}
+
+	sig, err := hex.DecodeString(signature)
+	if err != nil {
+		return fmt.Errorf("invalid signature in request: %w", err)
+	}
+
+	ok, err := choria.Ed24419Verify(pk, req, sig)
+	if err != nil {
+		return fmt.Errorf("signature verification failed: %v", err)
+	}
+
+	if !ok {
+		return fmt.Errorf("invalid request signature")
+	}
+
+	return nil
+}
+
+func (s *BasicJWT) signRequest(req []byte, token string, signature string) (bool, []byte, error) {
 	request, err := newRequestFromJSON(req)
 	if err != nil {
 		return false, nil, fmt.Errorf("invalid request: %s", err)
@@ -124,6 +165,12 @@ func (s *BasicJWT) signRequest(req []byte, token string) (bool, []byte, error) {
 	if err != nil {
 		s.auditRequest(auditors.Deny, request)
 		return false, nil, fmt.Errorf("invalid token: %s", err)
+	}
+
+	err = s.checkSignature(req, signature, claims)
+	if err != nil {
+		s.auditRequest(auditors.Deny, request)
+		return false, nil, fmt.Errorf("invalid signature: %s", err)
 	}
 
 	err = s.setCaller(request, claims)
@@ -174,7 +221,7 @@ func (s *BasicJWT) signRequest(req []byte, token string) (bool, []byte, error) {
 func (s *BasicJWT) sign(req *models.SignRequest) (sr *models.SignResponse) {
 	sr = &models.SignResponse{}
 
-	allowed, signed, err := s.signRequest(req.Request, req.Token)
+	allowed, signed, err := s.signRequest(req.Request, req.Token, req.Signature)
 	switch {
 	case !allowed && err == nil:
 		sr.Error = "Request denied"
@@ -182,6 +229,7 @@ func (s *BasicJWT) sign(req *models.SignRequest) (sr *models.SignResponse) {
 	case err != nil:
 		s.log.Warnf("Signing failed: %s", err)
 		sr.Error = "Request denied"
+		sr.Detail = err.Error()
 
 	case allowed:
 		sr.SecureRequest = signed

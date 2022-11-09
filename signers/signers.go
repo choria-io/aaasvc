@@ -21,7 +21,7 @@ type Signer interface {
 	Sign(req *models.SignRequest) *models.SignResponse
 
 	// SignRequest signs req based on token
-	SignRequest(req []byte, token string) (bool, []byte, error)
+	SignRequest(req []byte, token string, signature string) (bool, []byte, error)
 
 	// SetAuditors add auditors to be called after signing actions
 	SetAuditors(...auditors.Auditor)
@@ -39,7 +39,7 @@ func SetSigner(s Signer) {
 }
 
 // SignRequest signs a request based on a token using the configured signer
-func SignRequest(req []byte, token string) (bool, []byte, error) {
+func SignRequest(req []byte, token string, signature string) (bool, []byte, error) {
 	mu.Lock()
 	s := signer
 	mu.Unlock()
@@ -48,7 +48,7 @@ func SignRequest(req []byte, token string) (bool, []byte, error) {
 		return false, nil, fmt.Errorf("no signer configured")
 	}
 
-	return s.SignRequest(req, token)
+	return s.SignRequest(req, token, signature)
 }
 
 // SignHandler is a HTTP middleware handler for signing messages using the signer set by SetSigner

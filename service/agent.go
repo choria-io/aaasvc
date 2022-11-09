@@ -11,8 +11,9 @@ import (
 )
 
 type SignRPCRequest struct {
-	Request string `json:"request"`
-	Token   string `json:"token"`
+	Request   string `json:"request"`
+	Token     string `json:"token"`
+	Signature string `json:"signature"`
 }
 
 type SignRPCResponse struct {
@@ -47,7 +48,7 @@ func signAction(ctx context.Context, req *mcorpc.Request, reply *mcorpc.Reply, a
 	output := &SignRPCResponse{}
 	reply.Data = output
 
-	allowed, signed, err := signers.SignRequest([]byte(input.Request), input.Token)
+	allowed, signed, err := signers.SignRequest([]byte(input.Request), input.Token, input.Signature)
 	switch {
 	case !allowed && err == nil:
 		reply.Statusmsg = "Request Denied"

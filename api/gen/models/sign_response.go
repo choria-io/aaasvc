@@ -20,9 +20,12 @@ type SignResponse struct {
 	// An error message indicating why signing failed
 	Error string `json:"error,omitempty"`
 
-	// base64 encoded choria:secure:request:1 signed message
+	// base64 encoded protocol.SecureRequest signed message
 	// Format: byte
 	SecureRequest strfmt.Base64 `json:"secure_request,omitempty"`
+
+	// Details to assist tests
+	Detail string `json:"-"`
 }
 
 // Validate validates this sign response
