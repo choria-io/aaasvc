@@ -136,9 +136,13 @@ func init() {
       "type": "object",
       "properties": {
         "request": {
-          "description": "base64 encoded choria:request:1 message to sign",
+          "description": "base64 encoded Choria protocol.Request message to sign",
           "type": "string",
           "format": "byte"
+        },
+        "signature": {
+          "description": "A signature, hex encoded, made using the private key matching the public key in the token",
+          "type": "string"
         },
         "token": {
           "description": "The JWT token identifying the user, obtained from /login",
@@ -154,7 +158,7 @@ func init() {
           "type": "string"
         },
         "secure_request": {
-          "description": "base64 encoded choria:secure:request:1 signed message",
+          "description": "base64 encoded protocol.SecureRequest signed message",
           "type": "string",
           "format": "byte"
         }
@@ -281,9 +285,13 @@ func init() {
       "type": "object",
       "properties": {
         "request": {
-          "description": "base64 encoded choria:request:1 message to sign",
+          "description": "base64 encoded Choria protocol.Request message to sign",
           "type": "string",
           "format": "byte"
+        },
+        "signature": {
+          "description": "A signature, hex encoded, made using the private key matching the public key in the token",
+          "type": "string"
         },
         "token": {
           "description": "The JWT token identifying the user, obtained from /login",
@@ -299,7 +307,7 @@ func init() {
           "type": "string"
         },
         "secure_request": {
-          "description": "base64 encoded choria:secure:request:1 signed message",
+          "description": "base64 encoded protocol.SecureRequest signed message",
           "type": "string",
           "format": "byte"
         }

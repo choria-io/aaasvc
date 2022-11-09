@@ -105,7 +105,7 @@ type ChoriaCentralSigningServiceAPI struct {
 	CommandLineOptionsGroups []swag.CommandLineOptionsGroup
 
 	// User defined logger function.
-	Logger func(string, ...any)
+	Logger func(string, ...interface{})
 }
 
 // UseRedoc for documentation at /docs

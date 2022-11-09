@@ -17,9 +17,12 @@ import (
 // swagger:model SignRequest
 type SignRequest struct {
 
-	// base64 encoded choria:request:1 message to sign
+	// base64 encoded Choria protocol.Request message to sign
 	// Format: byte
 	Request strfmt.Base64 `json:"request,omitempty"`
+
+	// A signature, hex encoded, made using the private key matching the public key in the token
+	Signature string `json:"signature,omitempty"`
 
 	// The JWT token identifying the user, obtained from /login
 	Token string `json:"token,omitempty"`
