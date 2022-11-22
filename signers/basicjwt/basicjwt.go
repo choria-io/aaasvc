@@ -12,6 +12,7 @@
 package basicjwt
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -22,6 +23,7 @@ import (
 	"github.com/choria-io/aaasvc/auditors"
 	"github.com/choria-io/aaasvc/signers"
 	"github.com/choria-io/go-choria/choria"
+	cconf "github.com/choria-io/go-choria/config"
 	"github.com/choria-io/go-choria/inter"
 	v2 "github.com/choria-io/go-choria/protocol/v2"
 	"github.com/choria-io/go-choria/tokens"
@@ -35,11 +37,14 @@ import (
 
 // SignerConfig is configuration for the BasicJWT signer type
 type SignerConfig struct {
-	// SigningPubKey is the public certificate of the key used to sign the JWT
+	// SigningPubKey is the public certificate of the key used to sign the user JWT - typically the authenticator
 	SigningPubKey string `json:"signing_certificate"`
 
 	// SigningToken is the JWT used for signing requests, should have delegate authority
 	SigningToken string `json:"signing_token"`
+
+	// SigningSeed is used with SigningToken to sign secure requests
+	SigningSeed string `json:"signing_seed"`
 
 	// MaxValidity is the maximum token validity from current time to sign, this is to avoid someone issuing infinite or many year long tokens that can be a real problem should they leak
 	MaxValidity string `json:"max_validity"`
@@ -57,6 +62,7 @@ type BasicJWT struct {
 	site              string
 	pubkey            string
 	signerToken       string
+	signerSeed        string
 	allowBearerTokens bool
 	auth              authorizers.Authorizer
 	audit             []auditors.Auditor
@@ -65,7 +71,7 @@ type BasicJWT struct {
 }
 
 // New creates a new instance of the BasicJWT signer
-func New(fw inter.Framework, c *SignerConfig, site string) (signer *BasicJWT, err error) {
+func New(fw inter.Framework, c *SignerConfig, site string) (*BasicJWT, error) {
 	if c.MaxValidity == "" {
 		return nil, fmt.Errorf("max_validity is required")
 	}
@@ -75,16 +81,45 @@ func New(fw inter.Framework, c *SignerConfig, site string) (signer *BasicJWT, er
 		return nil, fmt.Errorf("invalid max_validity duration: %s", err)
 	}
 
-	return &BasicJWT{
+	signer := &BasicJWT{
 		maxExp:            d,
 		pubkey:            c.SigningPubKey,
 		signerToken:       c.SigningToken,
+		signerSeed:        c.SigningSeed,
 		allowBearerTokens: c.AllowBearerTokens,
 		audit:             []auditors.Auditor{},
 		fw:                fw,
-		log:               fw.Logger("signer").WithField("signer", "basicjwt"),
 		site:              site,
-	}, nil
+	}
+
+	// fw is the same as the one starting the service generally and when using issuers
+	// and tokens it must be a server token, which cannot sign requests
+	//
+	// thus we need to create a new fw to get a new security provider using these
+	// specific keys and tokens for a client with delegation authority to do secure
+	// request signing. We inherit settings like logs and such to keep things a bit sane
+	if c.SigningSeed != "" {
+		cfg, err := cconf.NewDefaultConfig()
+		if err != nil {
+			return nil, err
+		}
+		cfg.Choria.SecurityProvider = "choria"
+		cfg.Choria.ChoriaSecuritySeedFile = c.SigningSeed
+		cfg.Choria.ChoriaSecurityTokenFile = c.SigningToken
+		cfg.LogFile = fw.Configuration().LogFile
+		cfg.LogLevel = fw.Configuration().LogLevel
+
+		fw, err := choria.NewWithConfig(cfg)
+		if err != nil {
+			return nil, err
+		}
+
+		signer.fw = fw
+	}
+
+	signer.log = signer.fw.Logger("signer").WithField("signer", "basicjwt")
+
+	return signer, nil
 }
 
 // SetAuditors adds auditors to be called when dealing with signing requests
@@ -193,7 +228,7 @@ func (s *BasicJWT) signRequest(req []byte, token string, signature string) (bool
 
 	s.auditRequest(auditors.Allow, request)
 
-	srequest, err := s.fw.NewSecureRequest(request)
+	srequest, err := s.fw.NewSecureRequest(context.Background(), request)
 	if err != nil {
 		return false, nil, fmt.Errorf("secure request failed: %s", err)
 	}

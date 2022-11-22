@@ -1,6 +1,7 @@
 package basicjwt
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -182,7 +183,7 @@ var _ = Describe("BasicJWT", func() {
 			Expect(res.Error).To(Equal(""))
 			Expect(res.Detail).To(Equal(""))
 
-			sr, err := fw.NewSecureRequest(rpcreq)
+			sr, err := fw.NewSecureRequest(context.Background(), rpcreq)
 			Expect(err).ToNot(HaveOccurred())
 
 			err = json.Unmarshal(res.SecureRequest, &sr)

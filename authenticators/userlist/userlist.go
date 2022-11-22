@@ -16,6 +16,7 @@ import (
 
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/aaasvc/authenticators"
+	"github.com/choria-io/go-choria/choria"
 	"github.com/choria-io/go-choria/tokens"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -29,6 +30,8 @@ type AuthenticatorConfig struct {
 	UsersFile     string  `json:"users_file"`
 	TokenValidity string  `json:"validity"`
 	SigningKey    string  `json:"signing_key"`
+	// when set will issue users as a chained signer using this token, the signing key must then be ed25519
+	SigningToken string `json:"signing_token"`
 }
 
 // Authenticator is a authenticator with a basic fixed list of users and bcrypt encrypted passwords
@@ -159,6 +162,45 @@ func (a *Authenticator) processLogin(req *models.LoginRequest) (resp *models.Log
 		a.log.Warnf("Creating claims for user %s failed: %s", req.Username, err)
 		resp.Error = "Login failed"
 		return
+	}
+
+	if a.c.SigningToken != "" {
+		// a bunch of redundant repeated reading happens here of the same files but I prefer
+		// to do that so just updating the secrets will update the running instance
+
+		t, err := os.ReadFile(a.c.SigningToken)
+		if err != nil {
+			a.log.Errorf("Could not sign JWT for %s: failed to read signing token: %v", req.Username, err)
+			resp.Error = "Could not sign JWT token"
+			return
+		}
+
+		_, prik, err := choria.Ed25519KeyPairFromSeedFile(a.c.SigningKey)
+		if err != nil {
+			a.log.Errorf("Could not sign JWT for %s: failed to read private key: %v", req.Username, err)
+			resp.Error = "Could not sign JWT token"
+			return
+		}
+
+		token, err := tokens.ParseClientIDTokenUnverified(string(t))
+		if err != nil {
+			a.log.Errorf("Could not sign JWT for %s: failed to parse signing token: %v", req.Username, err)
+			resp.Error = "Could not sign JWT token"
+			return
+		}
+
+		if token.TrustChainSignature == "" {
+			a.log.Errorf("Could not sign JWT for %s: signing token is not a chain token", req.Username)
+			resp.Error = "Could not sign JWT token"
+			return
+		}
+
+		err = claims.AddChainIssuerData(token, prik)
+		if err != nil {
+			a.log.Errorf("Could not sign JWT for %s: adding chain data failed: %v", req.Username, err)
+			resp.Error = "Could not sign JWT token"
+			return
+		}
 	}
 
 	signed, err := tokens.SignTokenWithKeyFile(claims, a.c.SigningKey)
