@@ -116,6 +116,7 @@ func serveChoria(wg *sync.WaitGroup, conf *config.Config) error {
 
 	fw := conf.Choria()
 	fw.Configuration().DisableSecurityProviderVerify = true
+	fw.Configuration().InitiatedByServer = true
 
 	instance, err := server.NewInstance(fw)
 	if err != nil {

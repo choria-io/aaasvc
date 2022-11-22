@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/choria-io/fisk v0.2.1
-	github.com/choria-io/go-choria v0.26.3-0.20221108154503-39b484009dac
+	github.com/choria-io/go-choria v0.26.3-0.20221116131030-39fc2a1d9ac8
 	github.com/go-openapi/errors v0.20.3
 	github.com/go-openapi/loads v0.21.2
 	github.com/go-openapi/runtime v0.24.2
@@ -91,8 +91,8 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
-	golang.org/x/term v0.1.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/term v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
