@@ -21,5 +21,6 @@ All the statics have a `site` label allowing you to easily aggregate a global cl
 | `choria_aaa_signer_allowed`       | Total number of requests that were allowed by the authorizer |
 | `choria_aaa_signer_denied`        | Total number of requests that were denied by the authorizer  |
 | `choria_aaa_signer_invalid_token` | Total number of requests that contained invalid tokens       |
+| `choria_aaa_build_info`           | Build information about the running instance                 |
 
 We have a published [Grafana Dashboard](https://grafana.com/grafana/dashboards/12457-choria-aaa/) for this statistics.
