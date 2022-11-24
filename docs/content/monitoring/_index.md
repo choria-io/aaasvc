@@ -7,6 +7,8 @@ pre = "<b>3. </b>"
 
 The AAA Service keep statistics in the Prometheus format, using this you can see graphs of allow/denies but also get granular statistics for every Agent and Action.
 
+![AAA Dashboard](/aaa-dashboard.png)
+
 All the statics have a `site` label allowing you to easily aggregate a global cluster of AAA Services.
 
 | Statistic                         | Description                                                  |
