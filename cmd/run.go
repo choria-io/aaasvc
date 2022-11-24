@@ -17,6 +17,7 @@ import (
 	"github.com/choria-io/go-choria/server"
 	"github.com/go-openapi/loads"
 	"github.com/jessevdk/go-flags"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/pkg/errors"
@@ -38,6 +39,13 @@ func run(_ *fisk.ParseContext) error {
 	}
 
 	if cfg.MonitorPort > 0 {
+		buildInfo := prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "choria_aaa_build_info",
+			Help: "Build information about the running instance",
+		}, []string{"site", "version"})
+		prometheus.MustRegister(buildInfo)
+		buildInfo.WithLabelValues(cfg.Site, Version)
+
 		servePrometheus(cfg.MonitorPort)
 	}
 

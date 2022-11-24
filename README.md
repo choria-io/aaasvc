@@ -6,6 +6,9 @@ That default deployment method has no dependencies per request and scales very w
 
 The main motivation is to avoid the problems caused by having to do Certificate Management and Fleet wide static Action Policies for every user, instead you have a central login and central authority who does AAA for every request.  This is more appropriate to the typical Enterprise environment.
 
+* [Documentation](https://choria-io.github.io/aaasvc/)
+* [Community](https://github.com/choria-io/general/discussions)
+
 With this deployed the workflow becomes:
 
 ```
@@ -24,10 +27,6 @@ $ choria ping
 ```
 
 The token is valid for a configurable period after which time another `choria login` will be required. Users are able to perform only the actions that they are entitled. Users have no SSL certificates of their own - a system-wide certificate might be needed to connect to middleware if configured to require TLS.
-
-
-* [Documentation](https://choria-io.github.io/aaasvc/)
-* [Community](https://github.com/choria-io/general/discussions)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/choria-io/aaasvc)](https://goreportcard.com/report/github.com/choria-io/aaasvc)
 [![CodeQL](https://github.com/choria-io/aaasvc/workflows/CodeQL/badge.svg)](https://github.com/choria-io/aaasvc/actions/workflows/codeql.yaml)
