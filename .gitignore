@@ -7,3 +7,4 @@ aaasvc
 aaasvc-*linux*
 *.tar
 .idea
+.hugo_build.lock

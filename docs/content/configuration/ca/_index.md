@@ -1,0 +1,360 @@
++++
+title = "CA Based"
+toc = true
+weight = 10
+pre = "<b>1.1. </b>"
++++
+
+## Overview
+
+This deployment method is suitable to the typical Puppet user who wish to bring a little centralization to their system. It uses certificates from the Puppet CA and you will need to make a number of extra ones.
+
+This mode does not completely remove the need for per-user certificates, but, it will help a lot with multi node scenarios and allow you a more easy to manage method of managing RBAC.
+
+The system is made up of a few components:
+
+ 1. An Authentication service, called the **Authenticator**, accessed over HTTP(S), can be run anywhere
+ 2. A Signing service, called the **Signer**, accessed over Choria RPC, must run in the datacenter where fleets are
+ 3. An Authorization service, called the **Authorizer**, called by the Signer and ran in the same process
+ 4. Optional audit logging, called **Auditors**, called by the Authorizers and ran in the same process
+
+## Requirements
+
+### Privileged Certificate
+
+You need to obtain from your Certificate Authority a certificate named `<something>.privileged.mcollective`, if you are using Puppet you can do that with `choria enroll --certname aaasvc.privileged.mcollective`. Store the certificate in `/etc/aaasvc/ssl/aaasvc.privileged.mcollective.pem` and the key in `/etc/aaasvc/ssl/aaasvc.privileged.mcollective.key`, you also need the CA that signed it stored in `/etc/aaasvc/ssl/aaasvc.privileged.mcollective-ca.pem`.
+
+### Signing Key-Pair
+
+The JWT tokens will be signed using an RSA Key and needs to be generated.  It does not need to be signed by a CA.
+
+```nohighlight
+$ openssl genrsa -out /etc/aaasvc/jwt-signer.key 2048
+$ openssl rsa -in /etc/aaasvc/signer-private.key -outform PEM -pubout -out /etc/aaasvc/jwt-signer.pem
+```
+
+### Certificate for HTTPS
+
+The login service listens on HTTPS and so needs a certificate, key and certificate authority files. Generally these would be from the same Certificate Authority as your fleet nodes - probably Puppet.  Store them in `/etc/aaasvc/ssl/https.pem`, `/etc/aaasvc/ssl/https.key`, `/etc/aaasvc/ssl/https-ca.pem`.
+
+## General Service Configuration
+
+The AAA Service is configured using a JSON file, here is a basic one showing common parts, the following documentation sections will add to this starter JSON file.
+
+```json
+{
+  "logfile": "/var/log/aaasvc.log",
+  "loglevel": "warn",
+  "site": "london"
+}
+```
+
+| Item       | Description                                                                                                     |
+|------------|-----------------------------------------------------------------------------------------------------------------|
+| `logfile`  | A file to log to, this is the standard location which will be covered by the included logrotation configuration |
+| `loglevel` | The logging level, one of `debug`, `info`, `warn`, `error` or `fatal`                                           |
+| `site`     | A site name to expose in statistics, logs, audits etc, typically a DC name or some unique location identifier   |
+
+## Authenticator
+
+Authentication is the act of validating a person is who he claims to be, this is done using a username, token, 2FA or other similar means.
+
+While authentication is provided by this tool, it's optional you might choose to create JWT tokens using another method of your choosing, the login feature will only be enabled if any authenticator is configured.
+
+There is only one authenticator at the moment more might be added again in the future, for now you would set the `authenticator` key to `userlist` if you wish to enable it in a specific location.
+
+Users are configured either statically in this configuration file or via an external file, the benefit of the external file is that it can be updated without restarting the service.
+
+Passwords in the files are `bcrypt` encoded, we provide a utility:
+
+```nohighlight
+$ aaasvc crypt
+test
+$2a$05$tVM7WO82I.bpdNY6oXxEW.mo388JedJKEdIUqRb06HQ0/wWExyZ1O
+```
+
+Basic configuration for the Authenticator can be seen below:
+
+```json
+{
+  "logfile": "/var/log/aaasvc.log",
+  "loglevel": "warn",
+  "site": "london",
+  "port": "443",
+  "tls_certificate": "/etc/aaasvc/ssl/https.pem",
+  "tls_key": "/etc/aaasvc/ssl/https.key",
+  "tls_ca":  "/etc/aaasvc/ssl/https-ca.pem",
+  "authenticator": "userlist",
+  "userlist_authenticator": {
+    "validity": "1h",
+    "signing_key": "/etc/aaasvc/signer-private.key",
+    "users": [],
+    "users_file": ""
+  }
+}
+```
+
+| Property      | Description                                                                            |
+|---------------|----------------------------------------------------------------------------------------|
+| `users`       | Static list of users, see below                                                        |
+| `users_file`  | Dynamically loaded list of users, see below                                            |
+| `validity`    | JWT tokens issued by this service will be valid for this long, 1 hour is a good choice |
+| `signing_key` | A RSA key used for signing tokens                                                      |
+
+The additional new properties above related to TLS will be the TLS Configuration for the Web Service and the port sets
+the port that service listens on.
+
+### External File
+
+We can create an external file with the following content, set the path to this file using `users_file`.  The benefit of this approach is that the file is read on every authentication request hence any chances to it will be immediately live without restarts:
+
+```json
+[
+  {
+    "username": "puppetadmin",
+    "password": "$2y$05$c4b/0WZ5WJ3nhSZPN9m8keCUPlCYtNOTkqU4fDNEPCUy1C9Pfqn2e",
+    "acls": [
+      "puppet.*"
+    ],
+     "broker_permissions": {
+        "events_viewer": true
+     }
+  }
+]
+```
+
+Simply list all your users in this file.
+
+### Static Configuration
+
+Alternatively the users list above can simply be placed in-line in the configuration json file in the `users` key. Configuration will not be reloaded once started.
+
+### User Permissions
+
+Regardless of the method you pick we have a number of permissions you can set in `broker_permissions`. The list here is correct for `0.27.0`. For an up-to-date list see the [Go Documentation for your version of Choria](https://pkg.go.dev/github.com/choria-io/go-choria@v0.26.2/tokens#ClientPermissions)
+
+| Permission                 | Description                                                                                               |
+|----------------------------|-----------------------------------------------------------------------------------------------------------|
+| `streams_admin`            | Enables full access to Choria Streams for all APIs                                                        |
+| `streams_user`             | Enables user level access to Choria Streams, no stream admin features                                     |
+| `events_viewer`            | Allows viewing lifecycle and auto agent events using API or `choria tool event` or `choria machine watch` |
+| `election_user`            | Allows using leader elections                                                                             |
+| `system_user`              | Allows accessing the Choria Broker system account without verified TLS                                    |
+| `governor`                 | Enables access to Governors, cannot make new ones, also requires `streams_user` permission                |
+| `org_admin`                | Has access to all subjects and broker system account                                                      |
+| `fleet_management`         | Enables access to the choria server fleet for RPCs                                                        |
+| `signed_fleet_management`  | Requires a user to have a valid signature by an AAA Service to interact with the fleet                    |
+| `service`                  | Allows a token to have a longer than common lifetime, suitable for services users                         |
+| `authentication_delegator` | has the right to sign requests on behalf of others                                                        |
+
+Some like `fleet_management`, `signed_fleet_management` and `authentication_delegator` is not of much use in this scenario.
+
+### User Fleet Access Policies
+
+In Choria you access fleet nodes via the name of the *Agent* and an *Action* on the specified Agent, further you can supply *Inputs* as arguments to the *Action*.
+
+Access policies restricts which agents and actions can be accessed. For full details see later in the *Authorizer* section.
+
+#### Action List
+
+When the Authorization is configured using the `accesslist` Authorizer you set the `acls` property of the user. An example is `["puppet.status", "puppet.enable"]` to give access to 2 actions. See below for more details.
+
+#### Open Policy Agent
+
+When the Authorization is configured using the `opa` Authorizer you can either load the policy from a file or set it inline. For full examples see the Authorizers section, 
+
+The per-user policy can be set in the `opa_policy` as embedded string or in `opa_policy_file` which will be read from disk and embedded in the resulting JWT.
+
+## Signer
+
+The Signer listens on the Choria RPC network for RPC clients wishing to have their requests signed, signs them and sends the signed request back.
+
+The service is scalable horizontally or vertically, you can simply run many instances at the same time, there is no shared state between them or any kind of leader election, it's all Active-Active and adding more instances adds more capacity.
+
+### Choria Configuration
+
+Because the signer connects to Choria it needs a configuration file. Store this in `/etc/aaasvc/choria.conf`
+
+```ini
+plugin.security.provider = file
+plugin.security.file.certificate = /etc/aaasvc/ssl/aaasvc.privileged.mcollective.pem
+plugin.security.file.key = /etc/aaasvc/ssl/aaasvc.privileged.mcollective.key
+plugin.security.file.ca = /etc/aaasvc/ssl/aaasvc.privileged.mcollective-ca.pem
+```
+
+### Signer Configuration
+
+The configuration of the signer has a few relevant items, here's a full configuration for this scenario:
+
+```json
+{
+  "choria_config": "/etc/aaasvc/choria.conf",
+  "logfile": "/var/log/aaasvc.log",
+  "loglevel": "warn",
+  "site": "london",
+  "signer": "basicjwt",
+  "basicjwt_signer": {
+    "signing_certificate": "/etc/aaasvc/jwt-signer.pem",
+    "max_validity":"2h",
+    "choria_service": true,
+    "allow_bearer_tokens": true
+  }
+}
+```
+
+| Property              | Description                                                                                                                                         |
+|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `signing_certificate` | The public key for your Authenticator. Incoming signing requests will have their JWTs verified using this, only ones signed by it will be allowed   |
+| `max_validity`        | Enforces the maximum validity period on any JWT we accept. The only exception is for tokens with the `service` claim set to true                    |
+| `choria_service`      | Instructs the Signer to connect to Choria and start a service, otherwise HTTPS must be used to sign requests, strongly recommend to use this method |
+| `allow_bearer_tokens` | This is needed to allow older Choria clients to connect, those did not sign their signing requests                                                  |
+
+## Authorizer
+
+There are 2 Authorizers and a given signer server can run only one.
+
+### Action List
+
+The Action List Authorizer reads the `acls` claim from the users JWT and evaluate the request being signed against the list of allowed actions.
+
+
+| ACL                                  | Description                                                                            |
+|--------------------------------------|----------------------------------------------------------------------------------------|
+| `["puppet.status", "puppet.enable"]` | User can access just these 2 actions and no others                                     |
+| `["puppet.*", "rpcutil.ping"]`       | User can access all actions under the `puppet` agent and one under the `rpcutil` agent |
+| `["*"]`                              | User can perform all actions on all agents                                             |
+
+Configuration is easy, it has no specific configuration.:
+
+```json
+{
+  "logfile": "/var/log/aaasvc.log",
+  "loglevel": "warn",
+  "site": "london",
+  "authorizer": "actionlist"
+}
+```
+
+### Open Policy Agent
+
+Requests can be authorized using [Open Policy Agent](https://www.openpolicyagent.org/), it's a large topic and has it's own [documentation section](../opa/).
+
+## Auditing
+
+Auditors will write a log of every Authorization decision to their configured destination, multiple auditors can be active at a time.
+
+### Logfile
+
+This is a simple auditor that just writes a logfile of the actions taken.
+
+```json
+{
+  "logfile": "/var/log/aaasvc.log",
+  "loglevel": "warn",
+  "site": "london",
+  "auditors": ["logfile"],
+  "logfile_auditor": {
+    "logfile": "/var/log/signer_audit.json"
+  }
+}
+```
+
+You have to arrange for rotation of this log file, each line will be a JSON line.
+
+### Choria Streams
+
+If you want to aggregate audit logs from your regional signers back to the central authentication service this is the auditor to use.
+
+It publishes structured messages to a Choria Streams topic that you can use the [Choria Stream Replicator](https://github.com/choria-io/stream-replicator) to transport these from your regional DC to central for consumption.
+
+Published messages will match the [io.choria.signer.v1.signature_audit](https://choria.io/schemas/choria/signer/v1/signature_audit.json) JSON Schema.
+
+```json
+{
+  "logfile": "/var/log/aaasvc.log",
+  "loglevel": "warn",
+  "site": "london",
+  "auditors": ["jetstream"],
+  "jetstream_auditor": {
+    "cluster_id": "test-cluster",
+    "servers": "nats://localhost:4222",
+    "topic": "audit"
+  }
+}
+```
+
+## Choria Broker Configuration
+
+The broker will verify connections are signed by the Signer, all unsigned or non mTLS connections will be rejected.
+
+Copy the `/etc/aaasvc/jwt-signer.pem` to the broker and set this configuration.
+
+```ini
+plugin.choria.network.client_signer_cert = /etc/choria/jwt-signer.pem
+```
+
+## Choria Client Configuration
+
+Clients must know to login and requests signing be done, the `client.conf` settings enable that:
+
+### Choria Network Based Signatures
+
+```ini
+plugin.choria.security.request_signer.token_file = ~/.choria/token
+plugin.choria.security.request_signer.service = true
+plugin.login.aaasvc.login.url = https://caaa.example.net/choria/v1/login
+```
+
+### HTTPS Based Signatures
+
+While we strongly suggest signing via the Choria network, HTTP can also be used.
+
+```ini
+plugin.choria.security.request_signer.token_file = ~/.choria/token
+plugin.choria.security.request_signer.url = https://caaa.example.net/choria/v1/sign
+plugin.login.aaasvc.login.url = https://caaa.ams.devco.net/choria/v1/login
+```
+
+
+## Choria Server Configuration
+
+There is no specific configuration required on Choria servers when using this method
+
+## Full Sample Configuration
+
+Here is a sample configuration with:
+
+ * Authenticator on port 433 with external users
+ * Signer listening as a service
+ * Open Policy Agent Authorizer
+ * Logfile auditing
+
+```json
+{
+  "logfile": "/var/log/aaasvc.log",
+  "loglevel": "warn",
+  "site": "london",
+  "port": "443",
+  "tls_certificate": "/etc/aaasvc/ssl/https.pem",
+  "tls_key": "/etc/aaasvc/ssl/https.key",
+  "tls_ca":  "/etc/aaasvc/ssl/https-ca.pem",
+  "authenticator": "userlist",
+  "authorizer": "opa",
+  "auditors": ["logfile"],
+  "signer": "basicjwt",
+  "basicjwt_signer": {
+    "signing_certificate": "/etc/aaasvc/jwt-signer.pem",
+    "max_validity":"2h",
+    "choria_service": true,
+    "allow_bearer_tokens": true
+  },
+  "logfile_auditor": {
+    "logfile": "/var/log/signer_audit.json"
+  },
+  "userlist_authenticator": {
+    "validity": "1h",
+    "signing_key": "/etc/aaasvc/signer-private.key",
+    "users_file": "/etc/aaasvc/users.json"
+  }
+}
+```
