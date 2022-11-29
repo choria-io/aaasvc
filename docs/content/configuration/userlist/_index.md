@@ -95,7 +95,7 @@ Regardless of the method you pick we have a number of permissions you can set in
 | `service`                  | Allows a token to have a longer than common lifetime, suitable for services users                         |
 | `authentication_delegator` | has the right to sign requests on behalf of others                                                        |
 
-Some like `fleet_management`, `signed_fleet_management` and `authentication_delegator` is not of much use in this scenario.
+Many of these properties only make sense in the Organization Issuer based deployment scenario.
 
 ### User Fleet Access Policies
 
