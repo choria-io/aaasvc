@@ -1,4 +1,6 @@
-## Choria AAA Service
+![Choria AAA Service](https://choria-io.github.io/aaasvc/logo.png)
+
+## Overview
 
 Choria is traditionally a loosely coupled system with very few central components.  When a user makes a RPC request the request has a public certificate attached and every single node they interact with does RBAC.
 

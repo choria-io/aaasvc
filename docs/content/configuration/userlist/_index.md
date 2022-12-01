@@ -2,7 +2,7 @@
 title = "Userlist Authenticator"
 toc = true
 weight = 30
-pre = "<b>1.3. </b>"
+pre = "<b>2.3. </b>"
 +++
 
 Authentication is the act of validating a person is who he claims to be, this is done using a username, token, 2FA or other similar means.
