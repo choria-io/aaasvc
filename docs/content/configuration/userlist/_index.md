@@ -112,3 +112,22 @@ When the Authorization is configured using the `accesslist` Authorizer you set t
 When the Authorization is configured using the `opa` Authorizer you can either load the policy from a file or set it inline. For full examples see the Authorizers section,
 
 The per-user policy can be set in the `opa_policy` as embedded string or in `opa_policy_file` which will be read from disk and embedded in the resulting JWT.
+
+#### Choria Server Authorization
+
+Typically, these policies are only evaluated in the AAA Service Signer, you can though also evaluate them in Choria Server
+before executing your RPC call.
+
+{{% notice secondary "Version Hint" code-branch %}}
+This applies only to Choria 0.27.0 and newer which is due to ship early 2023
+{{% /notice %}}
+
+With this enabled you can create an entirely policy-free server setup as it will require every interaction to have a
+JWT token with policy embedded.
+
+```ini
+rpcauthorization = 1
+rpcauthprovider = aaasvc
+```
+
+With these 2 lines in your Choria Server it will entirely trust (and required) policies set in these JWTs
