@@ -60,7 +60,7 @@ var _ = Describe("Authorizers/OPA", func() {
 			policy := readFixture(fmt.Sprintf("testdata/scenario%d.rego", r))
 			claims.OPAPolicy = policy
 
-			allowed, err := auth.evaluatePolicy(req, policy, claims)
+			allowed, _, err := auth.authorize(req, claims)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(allowed).To(BeTrue())
 		}
@@ -78,12 +78,12 @@ var _ = Describe("Authorizers/OPA", func() {
 		req.Filter.AddIdentityFilter("some.node")
 		req.Filter.AddFactFilter("country", "==", "mt")
 
-		allowed, err := auth.evaluatePolicy(req, policy, claims)
+		allowed, _, err := auth.authorize(req, claims)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(allowed).To(BeTrue())
 
 		auth.site = "x"
-		allowed, err = auth.evaluatePolicy(req, policy, claims)
+		allowed, _, err = auth.authorize(req, claims)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(allowed).To(BeFalse())
 	})

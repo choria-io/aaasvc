@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/choria-io/fisk v0.2.1
-	github.com/choria-io/go-choria v0.26.3-0.20221116131030-39fc2a1d9ac8
+	github.com/choria-io/go-choria v0.26.3-0.20221201105340-9cc3744fc337
 	github.com/go-openapi/errors v0.20.3
 	github.com/go-openapi/loads v0.21.2
 	github.com/go-openapi/runtime v0.24.2
@@ -14,14 +14,14 @@ require (
 	github.com/go-openapi/validate v0.22.0
 	github.com/golang/mock v1.6.0
 	github.com/jessevdk/go-flags v1.5.0
-	github.com/onsi/ginkgo/v2 v2.5.0
-	github.com/onsi/gomega v1.24.0
+	github.com/onsi/ginkgo/v2 v2.5.1
+	github.com/onsi/gomega v1.24.1
 	github.com/open-policy-agent/opa v0.46.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
 	github.com/sirupsen/logrus v1.9.0
-	golang.org/x/crypto v0.1.0
-	golang.org/x/net v0.1.0
+	golang.org/x/crypto v0.3.0
+	golang.org/x/net v0.2.0
 )
 
 require (
@@ -69,8 +69,8 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nats-io/jsm.go v0.0.35 // indirect
-	github.com/nats-io/nats-server/v2 v2.9.6 // indirect
-	github.com/nats-io/nats.go v1.19.1 // indirect
+	github.com/nats-io/nats-server/v2 v2.9.8 // indirect
+	github.com/nats-io/nats.go v1.20.1-0.20221122181159-398a1ecb71df // indirect
 	github.com/nats-io/nkeys v0.3.0 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
@@ -78,9 +78,9 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/santhosh-tekuri/jsonschema/v5 v5.0.2 // indirect
+	github.com/santhosh-tekuri/jsonschema/v5 v5.1.1 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
-	github.com/tidwall/gjson v1.14.3 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
