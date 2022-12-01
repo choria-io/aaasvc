@@ -54,39 +54,4 @@ var _ = Describe("Authorizers/Actionlist", func() {
 			Expect(allowed).To(BeFalse())
 		})
 	})
-
-	Describe("validateAction", func() {
-		It("Should support '*' agents", func() {
-			claims.AllowedAgents = []string{"*"}
-			ok, err := validateAction("agent", "action", claims, log)
-			Expect(ok).To(BeTrue())
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("Should support action wildcards", func() {
-			claims.AllowedAgents = []string{"rpcutil.*"}
-			ok, err := validateAction("rpcutil", "action", claims, log)
-			Expect(ok).To(BeTrue())
-			Expect(err).ToNot(HaveOccurred())
-
-			ok, err = validateAction("other", "action", claims, log)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(ok).To(BeFalse())
-		})
-
-		It("Should support specific agent.action", func() {
-			claims.AllowedAgents = []string{"rpcutil.ping"}
-			ok, err := validateAction("rpcutil", "ping", claims, log)
-			Expect(ok).To(BeTrue())
-			Expect(err).ToNot(HaveOccurred())
-
-			ok, err = validateAction("rpcutil", "other", claims, log)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(ok).To(BeFalse())
-
-			ok, err = validateAction("other", "action", claims, log)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(ok).To(BeFalse())
-		})
-	})
 })

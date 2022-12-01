@@ -24,7 +24,6 @@ package actionlist
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/choria-io/aaasvc/authorizers"
 	"github.com/choria-io/go-choria/protocol"
@@ -77,13 +76,13 @@ func (a *Authorizer) authorize(req protocol.Request, claims *tokens.ClientIDClai
 	}
 
 	rpcreq := &mcorpc.Request{}
-	err = json.Unmarshal([]byte(req.Message()), rpcreq)
+	err = json.Unmarshal(req.Message(), rpcreq)
 	if err != nil {
 		a.log.Warnf("Could not parse RPC request in request %s from %s@%s for agent %s", req.RequestID(), req.CallerID(), req.SenderID(), req.Agent())
 		return false, req.Agent(), err
 	}
 
-	ok, err := validateAction(rpcreq.Agent, rpcreq.Action, claims, a.log)
+	ok, err := mcorpc.EvaluateAgentListPolicy(rpcreq.Agent, rpcreq.Action, claims.AllowedAgents, a.log)
 	if err != nil {
 		a.log.Warnf("Validating request %s from %s@%s for agent %s failed: %s", req.RequestID(), req.CallerID(), req.SenderID(), rpcreq.Agent, err)
 	}
@@ -95,38 +94,4 @@ func (a *Authorizer) authorize(req protocol.Request, claims *tokens.ClientIDClai
 	}
 
 	return ok, fmt.Sprintf("%s.%s", rpcreq.Agent, rpcreq.Action), err
-}
-
-func validateAction(agent string, action string, claims *tokens.ClientIDClaims, log *logrus.Entry) (ok bool, err error) {
-	agents := claims.AllowedAgents
-
-	for _, allow := range agents {
-		// all things are allowed
-		if allow == "*" {
-			return true, nil
-		}
-
-		parts := strings.Split(allow, ".")
-		if len(parts) != 2 {
-			return false, fmt.Errorf("invalid agent claim found in token %s", allow)
-		}
-
-		// its a claim for a different agent so pass, no need to check it here
-		if agent != parts[0] {
-			continue
-		}
-
-		// agent matches, action is * so allow it
-		if parts[1] == "*" {
-			return true, nil
-		}
-
-		// agent matches, action matches, allow it
-		if action == parts[1] {
-			return true, nil
-		}
-	}
-
-	// nothing matched all passed or list is empty, deny all
-	return false, nil
 }
