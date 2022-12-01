@@ -2,7 +2,7 @@
 title = "OPA Authorizer"
 toc = true
 weight = 40
-pre = "<b>1.4. </b>"
+pre = "<b>2.4. </b>"
 +++
 
 The [Open Policy Agent](https://www.openpolicyagent.org/) based policies allow for very flexible policy to be embedded into the JWT tokens, it allows for policies we have never supported in the past:
