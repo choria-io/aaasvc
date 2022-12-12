@@ -13,4 +13,5 @@ RUN groupadd --gid 2048 choria && \
     useradd -c "Choria Orchestrator - choria.io" -m --uid 2048 --gid 2048 choria && \
     chown -R choria:choria /etc/aaasvc
 
+ENV USER choria
 USER choria

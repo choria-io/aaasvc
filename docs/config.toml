@@ -3,7 +3,7 @@ languageCode = 'en-us'
 title = 'Choria AAA Service'
 theme = "hugo-theme-relearn"
 canonifyURLs = true
-themeVariant = "my-custom-variant"
+themeVariant = "choria-relearn"
 
 [outputs]
 home = [ "HTML", "RSS", "JSON"]
@@ -12,9 +12,11 @@ home = [ "HTML", "RSS", "JSON"]
 author = "Choria Project"
 showVisitedLinks = false
 disableLanguageSwitchingButton = true
-themeVariant = "my-custom-variant"
+themeVariant = "choria-relearn"
 disableInlineCopyToClipBoard = true
-alwaysopen = true
+alwaysopen = false
+disableLandingPageButton = true
+
 
 [[menu.shortcuts]]
 name = "<i class='fab fa-fw fa-github'></i> GitHub"
