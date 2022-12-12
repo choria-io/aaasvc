@@ -130,4 +130,4 @@ rpcauthorization = 1
 rpcauthprovider = aaasvc
 ```
 
-With these 2 lines in your Choria Server it will entirely trust (and required) policies set in these JWTs
+With these 2 lines in your Choria Server it will entirely trust (and require) policies set in these JWTs
