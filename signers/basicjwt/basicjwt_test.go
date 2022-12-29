@@ -111,16 +111,6 @@ var _ = Describe("BasicJWT", func() {
 			Expect(res.SecureRequest).To(BeNil())
 		})
 
-		It("Should handle JWT without an exp claim", func() {
-			req.Token = genToken(0, pubK)
-			req.Request = rpcreqstr
-			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
-			res := signer.Sign(req)
-			Expect(res.Error).To(Equal("Request denied"))
-			Expect(res.Detail).To(Equal("invalid token: invalid claims: expiry is not set or it is too far in the future"))
-			Expect(res.SecureRequest).To(BeNil())
-		})
-
 		It("Should handle invalid signatures", func() {
 			// first a totally bogus sig
 			req.Token = genToken(time.Minute, pubK)

@@ -24,8 +24,6 @@ func Run() {
 	app := fisk.New("caaa", "The Choria AAA Service")
 	app.Author("R.I.Pienaar <rip@devco.net>")
 	app.Version(Version)
-	app.UsageTemplate(fisk.CompactMainUsageTemplate)
-	app.ErrorUsageTemplate(fisk.CompactUsageTemplate)
 
 	app.Command("crypt", "Encrypts a password received on STDIN using bcrypt").Action(crypt)
 
