@@ -10,7 +10,7 @@ import (
 
 	"github.com/choria-io/aaasvc/api/gen/models"
 	"github.com/choria-io/go-choria/choria"
-	"github.com/choria-io/go-choria/tokens"
+	"github.com/choria-io/tokens"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sirupsen/logrus"

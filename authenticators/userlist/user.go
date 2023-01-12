@@ -4,7 +4,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/choria-io/go-choria/tokens"
+	"github.com/choria-io/tokens"
 )
 
 // User is a choria user

@@ -10,7 +10,7 @@ import (
 	reflect "reflect"
 
 	protocol "github.com/choria-io/go-choria/protocol"
-	tokens "github.com/choria-io/go-choria/tokens"
+	tokens "github.com/choria-io/tokens"
 	gomock "github.com/golang/mock/gomock"
 )
 
