@@ -4,11 +4,10 @@ import (
 	"io"
 	"testing"
 
-	"github.com/choria-io/go-choria/tokens"
+	"github.com/choria-io/tokens"
 	"github.com/sirupsen/logrus"
 
 	v1 "github.com/choria-io/go-choria/protocol/v1"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

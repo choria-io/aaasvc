@@ -30,7 +30,7 @@ import (
 
 	"github.com/choria-io/go-choria/protocol"
 	"github.com/choria-io/go-choria/providers/agent/mcorpc"
-	"github.com/choria-io/go-choria/tokens"
+	"github.com/choria-io/tokens"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/aaasvc/authorizers"

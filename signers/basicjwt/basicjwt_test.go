@@ -10,7 +10,7 @@ import (
 
 	"github.com/choria-io/go-choria/protocol"
 	v1 "github.com/choria-io/go-choria/protocol/v1"
-	"github.com/choria-io/go-choria/tokens"
+	"github.com/choria-io/tokens"
 	"golang.org/x/crypto/ed25519"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
@@ -19,7 +19,6 @@ import (
 	"github.com/golang/mock/gomock"
 
 	cconf "github.com/choria-io/go-choria/config"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

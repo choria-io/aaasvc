@@ -26,7 +26,7 @@ import (
 	cconf "github.com/choria-io/go-choria/config"
 	"github.com/choria-io/go-choria/inter"
 	v2 "github.com/choria-io/go-choria/protocol/v2"
-	"github.com/choria-io/go-choria/tokens"
+	"github.com/choria-io/tokens"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/aaasvc/api/gen/models"
