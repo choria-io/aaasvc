@@ -25,6 +25,44 @@ jobs:
           packager_tag: el8-go1.19
           version: nightly
 
+  docker:
+    needs:
+      - upload
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          path: src
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Build and Push Container
+        shell: bash
+        run: |
+          set -e
+          
+          DATE=$(date +%Y%m%d)
+          
+          find artifacts -name aaasvc-0.99.0.${DATE}-1.el8.x86_64.rpm | xargs -I {} cp {} src/
+          
+          cd src          
+          docker build \
+              --build-arg DATE="${DATE}" \
+              --tag "registry.choria.io/choria-nightly/aaasvc:nightly-${DATE}" \
+              --tag "registry.choria.io/choria-nightly/aaasvc:nightly" \
+              --file Dockerfile-nightly \
+              .
+          
+          docker login registry.choria.io -u "${{ secrets.REGISTRY_USERNAME }}" -p "${{ secrets.REGISTRY_PASSWORD }}"
+          
+          docker push "registry.choria.io/choria-nightly/aaasvc:nightly-${DATE}"
+          docker push "registry.choria.io/choria-nightly/aaasvc:nightly"
+
   upload:
     needs:
       - el7_64
