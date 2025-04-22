@@ -30,7 +30,7 @@ var metadata = &agents.Metadata{
 	Service:     true,
 }
 
-func NewService(fw mcorpc.ChoriaFramework, version string, log *logrus.Entry) (agents.Agent, error) {
+func NewService(fw inter.Framework, version string, log *logrus.Entry) (agents.Agent, error) {
 	metadata.Version = version
 	agent := mcorpc.New(metadata.Name, metadata, fw, log)
 
