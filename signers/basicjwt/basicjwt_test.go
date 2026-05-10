@@ -96,7 +96,7 @@ var _ = Describe("BasicJWT", func() {
 			auditor.EXPECT().Audit(auditors.Deny, rpcreq.CallerID(), gomock.Any()).AnyTimes()
 			res := signer.Sign(req)
 			Expect(res.Error).To(Equal("Request denied"))
-			Expect(res.Detail).To(Equal("invalid token: could not parse client id token: token contains an invalid number of segments"))
+			Expect(res.Detail).To(Equal("invalid token: could not parse client id token: token is malformed: token contains an invalid number of segments"))
 			Expect(res.SecureRequest).To(BeNil())
 		})
 

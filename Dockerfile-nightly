@@ -1,14 +1,14 @@
-FROM almalinux:9
+FROM almalinux:latest
 
 ARG DATE="unknown"
 
 WORKDIR /
 ENTRYPOINT ["/usr/sbin/aaasvc"]
 
-COPY aaasvc-0.99.0.${DATE}-1.el9.x86_64.rpm /tmp
+COPY aaasvc-0.99.0.${DATE}-1.el.x86_64.rpm /tmp
 
 RUN yum -y install nc procps-ng openssl && \
-    yum -y localinstall /tmp/aaasvc-0.99.0.${DATE}-1.el9.x86_64.rpm && \
+    yum -y localinstall /tmp/aaasvc-0.99.0.${DATE}-1.el.x86_64.rpm && \
     yum -y clean all
 
 RUN groupadd --gid 2048 choria && \
