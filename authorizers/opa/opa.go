@@ -27,10 +27,12 @@ package opa
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/choria-io/go-choria/protocol"
 	"github.com/choria-io/go-choria/providers/agent/mcorpc"
 	"github.com/choria-io/tokens"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 
 	"github.com/choria-io/aaasvc/authorizers"
@@ -72,7 +74,8 @@ func (a *Authorizer) authorizeProtoRequest(req protocol.Request, claims *tokens.
 		return true, req.Agent(), nil
 	}
 
-	err = claims.Valid()
+	validator := jwt.NewValidator(jwt.WithLeeway(5 * time.Second))
+	err = validator.Validate(claims)
 	if err != nil {
 		a.log.Warnf("Received request %s from %s@%s for agent %s with invalid JWT claims", req.RequestID(), req.CallerID(), req.SenderID(), req.Agent())
 		return false, req.Agent(), fmt.Errorf("invalid claims body received: %s", err)
