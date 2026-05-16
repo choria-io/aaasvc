@@ -3,12 +3,12 @@ module github.com/choria-io/aaasvc
 go 1.25.0
 
 require (
-	github.com/choria-io/fisk v0.8.1
-	github.com/choria-io/go-choria v0.30.0-rc.1
-	github.com/choria-io/tokens v0.0.4-0.20260330095821-b91f2ad57ea0
+	github.com/choria-io/fisk v0.8.3
+	github.com/choria-io/go-choria v0.30.0
+	github.com/choria-io/tokens v0.0.4
 	github.com/go-openapi/errors v0.22.7
 	github.com/go-openapi/loads v0.23.3
-	github.com/go-openapi/runtime v0.29.5
+	github.com/go-openapi/runtime v0.30.0
 	github.com/go-openapi/spec v0.22.4
 	github.com/go-openapi/strfmt v0.26.2
 	github.com/go-openapi/swag/cmdutils v0.26.0
@@ -46,6 +46,7 @@ require (
 	github.com/go-openapi/analysis v0.25.0 // indirect
 	github.com/go-openapi/jsonpointer v0.23.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.5 // indirect
+	github.com/go-openapi/runtime/server-middleware v0.30.0 // indirect
 	github.com/go-openapi/swag/conv v0.26.0 // indirect
 	github.com/go-openapi/swag/fileutils v0.26.0 // indirect
 	github.com/go-openapi/swag/jsonname v0.26.0 // indirect
@@ -95,7 +96,7 @@ require (
 	github.com/nats-io/nkeys v0.4.15 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
-	github.com/open-policy-agent/opa v1.16.1 // indirect
+	github.com/open-policy-agent/opa v1.16.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.5 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
