@@ -1,6 +1,6 @@
 FROM almalinux:latest
 
-ARG REPO="https://yum.eu.choria.io/release/el/release.repo"
+ARG REPO="https://yum.de.choria.io/release/el/release.repo"
 
 WORKDIR /
 ENTRYPOINT ["/usr/sbin/aaasvc"]
