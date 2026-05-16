@@ -32,7 +32,7 @@ The Organization Issuer can be made using `choria jwt keys` or using Hashicorp V
 
 Obtain your Organization Issuer public key, for the purpose of this documentation we will use `514969e316eb4a7146b8066feb6af5dbc05da0965ec57c9d3a7d3299d5d98fec`.
 
-We'll assume the Issuer seed is in `choria-issuer.seed`.
+We'll assume the Issuer seed is in `choria-issuer.seed` and the public key is in `choria-issuer.public`.
 
 {{% notice secondary "Using with Hashicorp Vault" info-circle %}}
 If you are using Vault with the Transit Secrets Engine to store your Organization Issuer set the `VAULT_ADDR` and `VAULT_TOKEN` environment variables and add `--vault` to `choria jwt` commands that need the issuer. Use the key name instead of `choria-issuer.seed` in the examples.
@@ -179,7 +179,7 @@ The configuration of the signer has a few relevant items, here's a full configur
   "site": "london",
   "signer": "basicjwt",
   "basicjwt_signer": {
-    "signing_certificate": "/etc/aaasvc/authenticator.public",
+    "signing_certificate": "/etc/aaasvc/choria-issuer.public",
     "signing_token": "/etc/aaasvc/signer.jwt",
     "signing_seed": "/etc/aaasvc/signer.seed",
     "max_validity":"1h",
@@ -190,7 +190,7 @@ The configuration of the signer has a few relevant items, here's a full configur
 
 | Property              | Description                                                                                                                                         |
 |-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `signing_certificate` | The public key for your Authenticator. Incoming signing requests will have their JWTs verified using this, only ones signed by it will be allowed   |
+| `signing_certificate` | The public key of the Choria Issuer                                                                                                                 |
 | `signing_token`       | The token used to sign user requests                                                                                                                |
 | `signing_seed`        | The token used to sign user requests                                                                                                                |
 | `max_validity`        | Enforces the maximum validity period on any JWT we accept. The only exception is for tokens with the `service` claim set to true                    |
@@ -325,7 +325,7 @@ Here is a sample configuration with:
   "auditors": ["logfile"],
   "signer": "basicjwt",
   "basicjwt_signer": {
-    "signing_certificate": "/etc/aaasvc/authenticator.public",
+    "signing_certificate": "/etc/aaasvc/choria-issuer.public",
     "signing_token": "/etc/aaasvc/signer.jwt",
     "signing_seed": "/etc/aaasvc/signer.seed",
     "max_validity":"1h",
